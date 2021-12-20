@@ -8,8 +8,8 @@
 
 using namespace glm;
 
-int WIDTH = 600;
-int HEIGHT = 600;
+int WIDTH = 800;
+int HEIGHT = 800;
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 float deltaTime;
@@ -38,8 +38,8 @@ MeshPainter *painter = new MeshPainter();
 std::vector<TriMesh *> meshList;
 
 TriMesh* cube = new TriMesh();
-// 不用谢
-// 举手之劳
+
+// 绘制天空盒
 void initSkyBox(std::string vshader, std::string fshader) {
 	vec3 Black(0,0,0);
 	TriMesh* top = new TriMesh();
@@ -113,31 +113,14 @@ void init()
 
 	TriMesh* cube = new TriMesh();
 	cube->readOff("./assets/off/cube.off");
-	// cube->generateCube(vec3(0.2f));
-	// cube->setTranslation(vec3(0.0, 0.25, 0)); 
-	// cube->setRotation(vec3(-32, 234, 2));
-	// cube->setScale(vec3(1.0, 1.0, 1.0));	
-	// cube->setAmbient(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 环境光
-	// cube->setDiffuse(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 漫反射
-	// cube->setSpecular(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 镜面反射
 	painter->addMesh(cube, "cube_object", "", vshader, fshader); //编号为0
-	// meshList.push_back(cube);
+	meshList.push_back(cube);
 	
 	TriMesh* plane = new TriMesh();
 	plane->generateSquare(vec3(0.0118, 0.4, 0.302));
-	// plane->setTranslation(vec3(0.0, -0.1, 0));
-	// plane->setRotation(vec3(90, 0, 0));
-	// plane->setScale(vec3(10.0, 10.0, 10.0));
-	// plane->setAmbient(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 环境光
-	// plane->setDiffuse(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 漫反射
-	// plane->setSpecular(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 镜面反射
 	painter->addMesh(plane, "plane_object", "", vshader, fshader); //编号为1的平面
 	meshList.push_back(plane);
 	glClearColor(0.3, 0.4, 0.5, 1.0);
-	// glClearColor(0.0, 0.0, 0.0, 1.0);
-
-
-
 	// glClearColor(1.0, 1.0, 1.0, 1.0);
 	// glClearColor(0.0, 0.0, 0.0, 1.0);
 }

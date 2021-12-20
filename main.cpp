@@ -105,7 +105,7 @@ void init()
 	fshader = "shaders/fshader.glsl";
 
 	// 设置光源位置
-	light->setTranslation(glm::vec3(0.0, 0.0, 2.0));
+	light->setTranslation(glm::vec3(0.0, 3.0, 2.0));
 	light->setAmbient(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 环境光
 	light->setDiffuse(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 漫反射
 	light->setSpecular(glm::vec4(1.0, 1.0, 1.0, 1.0)); // 镜面反射
@@ -131,13 +131,13 @@ void drawshootmodel() {
 	modelView = translate(modelView, vec3(0.0, 0.23, 0.0));
 	modelView = translate(modelView, vec3(headPosX, height, headPosZ));
 	modelView = rotate(modelView, float(radians(_yaw)), vec3(0, 1, 0));
-	// modelView = rotate(modelView, float(glfwGetTime()), vec3(0, 1, 0));
-	painter->drawMesh(0, modelView, light, camera, true);
+	painter->drawMesh(0, modelView, light, camera, true); //true设置是否绘制阴影
 }
 void drawplanemodel() {
 	mat4 modelView = mat4(1.0);
+	modelView = translate(modelView, vec3(0.0, -0.005, 0.0)); //
 	modelView = rotate(modelView, float(radians(90.0f)), vec3(1.0, 0.0, 0.0));
-	modelView = scale(modelView, vec3(20.0));
+	modelView = scale(modelView, vec3(30.0));
 	painter->drawMesh(1, modelView, light, camera, false);
 }
 void display()
@@ -235,25 +235,19 @@ void processinput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		headPosX -= sin(radians(_yaw)) * moveStep;
 		headPosZ -= cos(radians(_yaw)) * moveStep;
-		// camera->ProcessKeyboard(FORWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		headPosX += sin(radians(_yaw)) * moveStep;
 		headPosZ += cos(radians(_yaw)) * moveStep;
-		// camera->ProcessKeyboard(BACKWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		headPosX -= sin(radians(_yaw + 90)) * moveStep;
 		headPosZ -= cos(radians(_yaw + 90)) * moveStep;
-		// camera->ProcessKeyboard(LEFT, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		headPosX += sin(radians(_yaw + 90)) * moveStep;
 		headPosZ += cos(radians(_yaw + 90)) * moveStep;
-		// camera->ProcessKeyboard(RIGHT, deltaTime);
-	} 
-	// headPosX=camera->cameraPos.x;
-	// headPosZ=camera->cameraPos.z;
+	}
 	camera->cameraPos.x = headPosX;
 	camera->cameraPos.z = headPosZ;
 }

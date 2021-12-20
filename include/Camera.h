@@ -70,7 +70,6 @@ public:
 	float aspect;
 	// 正交投影参数
 	float scale;
-	void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
 };
 #endif

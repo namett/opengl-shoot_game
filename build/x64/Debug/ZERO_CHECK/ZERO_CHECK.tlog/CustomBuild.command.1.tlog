@@ -1,0 +1,10 @@
+^C:\USERS\ASUS\DESKTOP\射击小游戏\BUILD\CMAKEFILES\F3C5070CE58F294A6591FD4C6CB52EA8\GENERATE.STAMP.RULE
+setlocal
+"D:\Program Files\CMake\bin\cmake.exe" -SC:/Users/ASUS/Desktop/射击小游戏 -BC:/Users/ASUS/Desktop/射击小游戏/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/ASUS/Desktop/射击小游戏/build/main.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

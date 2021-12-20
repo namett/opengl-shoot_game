@@ -1,0 +1,10 @@
+^C:\USERS\ASUS\DESKTOP\射击小游戏\CMAKELISTS.TXT
+setlocal
+"D:\Program Files\CMake\bin\cmake.exe" -SC:/Users/ASUS/Desktop/射击小游戏 -BC:/Users/ASUS/Desktop/射击小游戏/build --check-stamp-file C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

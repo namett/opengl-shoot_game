@@ -1,0 +1,36 @@
+# CMake generation dependency list for this directory.
+C:/Users/ASUS/Desktop/射击小游戏/CMakeLists.txt
+C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/3.21.2/CMakeCCompiler.cmake
+C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/3.21.2/CMakeCXXCompiler.cmake
+C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/3.21.2/CMakeRCCompiler.cmake
+C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/3.21.2/CMakeSystem.cmake
+C:/src/vcpkg/installed/x64-windows/share/glad/gladConfig.cmake
+C:/src/vcpkg/installed/x64-windows/share/glad/gladConfigVersion.cmake
+C:/src/vcpkg/installed/x64-windows/share/glad/gladTargets-debug.cmake
+C:/src/vcpkg/installed/x64-windows/share/glad/gladTargets-release.cmake
+C:/src/vcpkg/installed/x64-windows/share/glad/gladTargets.cmake
+C:/src/vcpkg/installed/x64-windows/share/glfw3/glfw3Config.cmake
+C:/src/vcpkg/installed/x64-windows/share/glfw3/glfw3ConfigVersion.cmake
+C:/src/vcpkg/installed/x64-windows/share/glfw3/glfw3Targets-debug.cmake
+C:/src/vcpkg/installed/x64-windows/share/glfw3/glfw3Targets-release.cmake
+C:/src/vcpkg/installed/x64-windows/share/glfw3/glfw3Targets.cmake
+C:/src/vcpkg/installed/x64-windows/share/glm/glm-config.cmake
+C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCInformation.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCXXInformation.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeCommonLanguageInclude.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeDependentOption.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeGenericSystem.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeInitializeConfigs.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeLanguageInformation.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeRCInformation.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInformation.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/CMakeSystemSpecificInitialize.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Compiler/MSVC-C.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Compiler/MSVC-CXX.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC-C.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC-CXX.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows-MSVC.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Platform/Windows.cmake
+D:/Program Files/CMake/share/cmake-3.21/Modules/Platform/WindowsPaths.cmake

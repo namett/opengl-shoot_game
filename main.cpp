@@ -12,10 +12,12 @@ int WIDTH = 600;
 int HEIGHT = 600;
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
+float deltaTime;
+float lastFrame = 0.0f;
 bool firstMouse = true;
 // int mainWindow;
 // 鼠标移动
-double maxUpAngle = 89.9f, minUpangle = -89.9f;
+double maxUpAngle = 89.9f, minUpangle = 0.0f;
 double xCPI = 0.02, yCPI = 0.02;
 double _yaw = DEFAULT_YAW, _pitch = DEFAULT_PITCH;
 // 鼠标滚动
@@ -25,7 +27,7 @@ double minFOV = 0.5f, maxFOV = 16.0f;
 
 double headPosX = DEFAULT_HEAD_POS_X;
 double headPosZ = DEFAULT_HEAD_POS_Z;
-double moveStep = 0.001;
+double moveStep = 0.002;
 double height = DEFAULT_HEIGHT;
 
 Camera* camera = new Camera();
@@ -36,7 +38,65 @@ MeshPainter *painter = new MeshPainter();
 std::vector<TriMesh *> meshList;
 
 TriMesh* cube = new TriMesh();
+// 不用谢
+// 举手之劳
+void initSkyBox(std::string vshader, std::string fshader) {
+	vec3 Black(0,0,0);
+	TriMesh* top = new TriMesh();
+	top->setNormalize(false);
+	top->generateSquare(Black);
+	top->setTranslation(glm::vec3(0.0, 20.0, 0.0));
+	top->setScale(glm::vec3(40.0, 40.0, 40.0));
+	top->setRotation(glm::vec3(-90, 0, 0.0));
+	painter->addMesh(top, "top", "./assets/skybox2/top.jpg", vshader, fshader);
+	meshList.push_back(top);
 
+	TriMesh* front = new TriMesh();
+	front->setNormalize(false);
+	front->generateSquare(Black);
+	front->setTranslation(glm::vec3(0.0, 0.0, -20.0));
+	front->setScale(glm::vec3(40.0, 40.0, 40.0));
+	front->setRotation(glm::vec3(0.0, 180.0, 0.0));
+	painter->addMesh(front, "front", "./assets/skybox2/front.jpg", vshader, fshader);
+	meshList.push_back(front);
+
+	TriMesh* back = new TriMesh();
+	back->setNormalize(false);
+	back->generateSquare(Black);
+	back->setTranslation(glm::vec3(0.0, 0.0, 20.0));
+	back->setScale(glm::vec3(40.0, 40.0, 40.0));
+	back->setRotation(glm::vec3(0.0, 0.0, 0.0));
+	painter->addMesh(back, "back", "./assets/skybox2/back.jpg", vshader, fshader);
+	meshList.push_back(back);
+
+	TriMesh* left = new TriMesh();
+	left->setNormalize(false);
+	left->generateSquare(Black);
+	left->setTranslation(glm::vec3(-20.0, 0.0, 0.0));
+	left->setScale(glm::vec3(40.0, 40.0, 40.0));
+	left->setRotation(glm::vec3(0.0, -90.0, 0.0));
+	painter->addMesh(left, "back", "./assets/skybox2/left.jpg", vshader, fshader);
+	meshList.push_back(left);
+
+	TriMesh* right = new TriMesh();
+	right->setNormalize(false);
+	right->generateSquare(Black);
+	right->setTranslation(glm::vec3(20.0, 0.0, 0.0));
+	right->setScale(glm::vec3(40.0, 40.0, 40.0));
+	right->setRotation(glm::vec3(0.0, 90.0, 0.0));
+	painter->addMesh(right, "right", "./assets/skybox2/right.jpg", vshader, fshader);
+	meshList.push_back(right);
+
+	TriMesh* bottom = new TriMesh();
+	bottom->setNormalize(false);
+	bottom->generateSquare(Black);
+	bottom->setTranslation(glm::vec3(0.0, -20.0, 0.0));
+	bottom->setScale(glm::vec3(40.0, 40.0, 40.0));
+	bottom->setRotation(glm::vec3(-90.0, 0.0, 0.0));
+	painter->addMesh(bottom, "bottom", "./assets/skybox2/bottom.jpg", vshader, fshader);
+	meshList.push_back(bottom);
+	
+}
 void init()
 {
 	std::string vshader, fshader;
@@ -64,7 +124,7 @@ void init()
 	// meshList.push_back(cube);
 	
 	TriMesh* plane = new TriMesh();
-	plane->generateSquare(vec3(0.0784, 0.0667, 0.6196));
+	plane->generateSquare(vec3(0.0118, 0.4, 0.302));
 	// plane->setTranslation(vec3(0.0, -0.1, 0));
 	// plane->setRotation(vec3(90, 0, 0));
 	// plane->setScale(vec3(10.0, 10.0, 10.0));
@@ -85,7 +145,7 @@ void init()
 
 void drawshootmodel() {
 	mat4 modelView = mat4(1.0);
-	modelView = translate(modelView, vec3(0.25));
+	modelView = translate(modelView, vec3(0.0, 0.23, 0.0));
 	modelView = translate(modelView, vec3(headPosX, height, headPosZ));
 	modelView = rotate(modelView, float(radians(_yaw)), vec3(0, 1, 0));
 	// modelView = rotate(modelView, float(glfwGetTime()), vec3(0, 1, 0));
@@ -94,8 +154,8 @@ void drawshootmodel() {
 void drawplanemodel() {
 	mat4 modelView = mat4(1.0);
 	modelView = rotate(modelView, float(radians(90.0f)), vec3(1.0, 0.0, 0.0));
-	modelView = scale(modelView, vec3(5.0));
-	painter->drawMesh(1, modelView, light, camera, true);
+	modelView = scale(modelView, vec3(20.0));
+	painter->drawMesh(1, modelView, light, camera, false);
 }
 void display()
 {
@@ -104,7 +164,7 @@ void display()
 
 	drawshootmodel();
 	drawplanemodel();
-	// painter->drawMeshes(light, camera);
+	painter->drawMeshes(light, camera, 2, 7);
 
 }
 
@@ -188,22 +248,29 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	camera->upAngle = _pitch;
 }
 void processinput(GLFWwindow *window) {
+	deltaTime = 1;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		headPosX -= sin(radians(_yaw)) * moveStep * 1;
-		headPosZ -= cos(radians(_yaw)) * moveStep * 1;
+		headPosX -= sin(radians(_yaw)) * moveStep;
+		headPosZ -= cos(radians(_yaw)) * moveStep;
+		// camera->ProcessKeyboard(FORWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		headPosX += sin(radians(_yaw)) * moveStep * 1;
-		headPosZ += cos(radians(_yaw)) * moveStep * 1;
+		headPosX += sin(radians(_yaw)) * moveStep;
+		headPosZ += cos(radians(_yaw)) * moveStep;
+		// camera->ProcessKeyboard(BACKWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		headPosX -= cos(radians(_yaw)) * moveStep * 1;
-		headPosZ -= sin(radians(_yaw)) * moveStep * 1;
+		headPosX -= sin(radians(_yaw + 90)) * moveStep;
+		headPosZ -= cos(radians(_yaw + 90)) * moveStep;
+		// camera->ProcessKeyboard(LEFT, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		headPosX += cos(radians(_yaw)) * moveStep * 1;
-		headPosZ += sin(radians(_yaw)) * moveStep * 1;
+		headPosX += sin(radians(_yaw + 90)) * moveStep;
+		headPosZ += cos(radians(_yaw + 90)) * moveStep;
+		// camera->ProcessKeyboard(RIGHT, deltaTime);
 	} 
+	// headPosX=camera->cameraPos.x;
+	// headPosZ=camera->cameraPos.z;
 	camera->cameraPos.x = headPosX;
 	camera->cameraPos.z = headPosZ;
 }
@@ -273,12 +340,17 @@ int main(int argc, char **argv)
 
 	// Init mesh, shaders, buffer
 	init();
+	initSkyBox("./shaders/skyvshader.glsl", "./shaders/skyfshader.glsl");
 	// 输出帮助信息
 	printHelp();
 	// 启用深度测试
 	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
+	    float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
 		processinput(window);
 		display();
 		//reshape();

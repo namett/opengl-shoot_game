@@ -77,6 +77,7 @@ public:
 	void drawMesh(int i, glm::mat4 modelMatrix, Light *light, Camera* camera, bool shadow);
 
 	// 绘制多个物体
+	void MeshPainter::drawMeshes(Light *light, Camera* camera, int l, int r);
     void drawMeshes(Light *light, Camera* camera);
 
 	// 清空数据

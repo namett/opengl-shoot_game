@@ -134,3 +134,18 @@ void Camera::keyboard(int key, int action, int mode)
 	}
 	// else if (key =)
 }
+
+void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
+	float velocity = 0.001 * deltaTime;
+	glm::vec3 Front = at;
+	glm::vec3 Right = normalize(cross(Front, vec3(0, 1, 0)));
+	// cameraPos
+	if (direction == FORWARD)
+		cameraPos += Front * velocity;
+	if (direction == BACKWARD)
+		cameraPos -= Front * velocity;
+	if (direction == LEFT)
+		cameraPos -= Right * velocity;
+	if (direction == RIGHT)
+		cameraPos += Right * velocity;
+}

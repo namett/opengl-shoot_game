@@ -12,6 +12,13 @@
 #define DEFAULT_HEAD_POS_Z 0.0
 #define DEFAULT_HEIGHT 0.15
 
+enum Camera_Movement {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
+
 class Camera
 {
 public:
@@ -40,7 +47,8 @@ public:
 	void initCamera();
 	// 处理相机的键盘操作
 	void keyboard(int key, int action, int mode);
-
+	
+	
 	// 模视矩阵
 	glm::mat4 viewMatrix;
 	glm::mat4 projMatrix;
@@ -62,6 +70,7 @@ public:
 	float aspect;
 	// 正交投影参数
 	float scale;
+	void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
 };
 #endif

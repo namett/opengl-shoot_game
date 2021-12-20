@@ -242,6 +242,12 @@ void MeshPainter::drawMesh(int i, glm::mat4 modelMatrix, Light *light, Camera* c
 	glUseProgram(0);
 
 };
+void MeshPainter::drawMeshes(Light *light, Camera* camera, int l, int r){
+    for (int i = l; i <= r; i++)
+    {
+        drawMesh(meshes[i], opengl_objects[i], light, camera);
+    }
+};
 void MeshPainter::drawMeshes(Light *light, Camera* camera){
     for (int i = 0; i < meshes.size(); i++)
     {

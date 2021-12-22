@@ -127,8 +127,12 @@ void init()
 }
 TriMesh *bullet[1000]; //最多1000发子弹
 vec3 mov[1000], bas[1000];
+int indexbullet[1000];
 float ang[1000];
-int cntbullet = 0;
+bool vis[1000]; //判断是否绘制
+int cntbullet = 0, cntplanet = 0;
+std::vector <int> idcolorplane;
+std::vector <vec2> pcolorplane; //(x, z)
 void generatebullet() {
 	if (cntbullet >= 1000) return;
 	std::string vshader, fshader;
@@ -143,21 +147,52 @@ void generatebullet() {
 	std::string name = "bullet" + now;
 	painter->addMesh(bullet[now], name, "", vshader, fshader);
 	meshList.push_back(bullet[now]);
+	indexbullet[now] = meshList.size() - 1;
+}
+void generatebulletplane(vec2 center) {
+	std::string vshader, fshader;
+	// 读取着色器并使用
+	vshader = "shaders/vshader.glsl";
+	fshader = "shaders/fshader.glsl";
+	int now = cntplanet++;
+	TriMesh* plane = new TriMesh();
+	plane->generateSquare(vec3(0.2471, 0.0157, 0.6196));
+	std::string name = "plane_object" + now;
+	painter->addMesh(plane, name, "", vshader, fshader); //编号为1的平面
+	meshList.push_back(plane);
+	idcolorplane.push_back(meshList.size() - 1);
+	pcolorplane.push_back(center);
 }
 void drawbullet() {
 	mat4 modelView = mat4(1.0);
 	for (int i = 0; i < cntbullet; i++) {
-		if (mov[i].y + 0.4 < 0) continue;
+		if (mov[i].y + 0.4 < 0) {
+			if (!vis[i]) {
+				vis[i] = true;
+				generatebulletplane(vec2(mov[i].x, mov[i].z));
+			}
+			continue;
+		}
 		modelView = mat4(1.0);
 		modelView = translate(modelView, vec3(0.0, 0.4, 0.0));
 		modelView = translate(modelView, mov[i]);
 		modelView = scale(modelView, vec3(0.2));
 		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), bas[i].y, -0.003 * cos(radians(ang[i])));
-		painter->drawMesh(i + 8, modelView, light, camera, true); //true设置是否绘制阴影		
+		painter->drawMesh(indexbullet[i], modelView, light, camera, true); //true设置是否绘制阴影		
 	}
 }
-void movebullet() {
-
+void drawbulletplane() {
+	mat4 modelView = mat4(1.0);
+	for (int i = 0; i < cntplanet; i++) {
+		modelView = mat4(1.0);
+		modelView = translate(modelView, vec3(pcolorplane[i].x, -0.002, pcolorplane[i].y)); //
+		// modelView = translate(modelView, vec3(0, -0.002, 0)); //
+		modelView = rotate(modelView, float(radians(ang[i])), vec3(0.0, 1.0, 0.0));
+		modelView = rotate(modelView, float(radians(90.0f)), vec3(1.0, 0.0, 0.0));
+		
+		// modelView = translate(modelView, vec3(pcolorplane[i].x, 0, pcolorplane[i].y));
+		painter->drawMesh(idcolorplane[i], modelView, light, camera, false);
+	}
 }
 void drawshootmodel() {
 	mat4 modelView = mat4(1.0);
@@ -180,9 +215,9 @@ void display()
 
 	drawshootmodel();
 	drawplanemodel();
+	drawbulletplane();
 	painter->drawMeshes(light, camera, 2, 7);
 	if (cntbullet) drawbullet();
-	// painter->drawMeshes(light, camera, 8, 8 + cntbullet - 1);
 }
 
 
@@ -318,7 +353,7 @@ void cleanData() {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
+float pre_time = 0;
 int main(int argc, char **argv)
 {
 	// 初始化GLFW库，必须是应用程序调用的第一个GLFW函数
@@ -365,12 +400,14 @@ int main(int argc, char **argv)
 	glEnable(GL_DEPTH_TEST);
 
 	// generatebullet();
+	// int s = 0;
 	while (!glfwWindowShouldClose(window))
 	{
 	    float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
+		// s++;
+		// std::cout << deltaTime << std::endl;
 		processinput(window);
 		display();
 		//reshape();

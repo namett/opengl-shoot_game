@@ -87,7 +87,7 @@ void MeshPainter::bindObjectAndData(TriMesh *mesh, openGLObject &object, const s
 	//	glUniform1i(object.textureLocation, 0);
 		glUniform1i(object.colorLocation, 1);
 	}
-	//else {
+	else {
 		object.texture_image = texture_image;
 		// 读取纹理图片数
 		// 创建纹理的缓存对象
@@ -96,7 +96,7 @@ void MeshPainter::bindObjectAndData(TriMesh *mesh, openGLObject &object, const s
 		load_texture_STBImage(object.texture_image, object.texture);
 		// 传递纹理数据 将生成的纹理传给shader
 		glUniform1i(glGetUniformLocation(object.program, "texture"), 0);
-	//}
+	}
     
     // Clean up
     glUseProgram(0);

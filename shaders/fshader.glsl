@@ -102,7 +102,7 @@ out vec4 fColor;
 void main()
 {
 	if (isShadow == 1) {
-		fColor = vec4(0.05, 0.05, 0.05, 1.0);
+		fColor = vec4(0.051, 0.051, 0.051, 1.0);
 	}
 	else {
 		// vec3 norm = (vec4(normal, 0.0)).xyz;
@@ -133,7 +133,7 @@ void main()
 		// fColor = I_a + c*(I_d + I_s);
 		// fColor.a = 1.0;
 
-		// vec4 tmp = texture2D( texture, texCoord );
+		
 		// // if(isTextrue == 1){
 		// //	fColor = texture( texture, texCoord );
 		// //  }
@@ -146,10 +146,11 @@ void main()
 		// // fColor = vec4(1.0/position.z, position.z, position.z , 1.0);
 
 		// // 将光照和贴图合成
-		// // fColor=tmp;
+		// vec4 tmp = texture2D( texture, texCoord );
+		fColor = vec4(color, 1.0);
 		// fColor.r*=tmp.r;
 		// fColor.g*=tmp.g;
 		// fColor.b*=tmp.b;
-		fColor = vec4(color, 1.0);
+		
 	}
 }

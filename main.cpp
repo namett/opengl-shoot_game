@@ -5,11 +5,11 @@
 
 #include <vector>
 #include <string>
-
+// using namespace std;
 using namespace glm;
 
-int WIDTH = 800;
-int HEIGHT = 800;
+int WIDTH = 1000;
+int HEIGHT = 1000;
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0f;
 float deltaTime;
@@ -17,7 +17,7 @@ float lastFrame = 0.0f;
 bool firstMouse = true;
 // int mainWindow;
 // 鼠标移动
-double maxUpAngle = 89.9f, minUpangle = 0.0f;
+double maxUpAngle = 89.9f, minUpangle = -89.9f;//0.0f;
 double xCPI = 0.02, yCPI = 0.02;
 double _yaw = DEFAULT_YAW, _pitch = DEFAULT_PITCH;
 // 鼠标滚动
@@ -29,6 +29,7 @@ double headPosX = DEFAULT_HEAD_POS_X;
 double headPosZ = DEFAULT_HEAD_POS_Z;
 double moveStep = 0.002;
 double height = DEFAULT_HEIGHT;
+const float gravity = -0.0002;
 
 Camera* camera = new Camera();
 Light* light = new Light();
@@ -124,8 +125,40 @@ void init()
 	// glClearColor(1.0, 1.0, 1.0, 1.0);
 	// glClearColor(0.0, 0.0, 0.0, 1.0);
 }
+TriMesh *bullet[1000]; //最多1000发子弹
+vec3 mov[1000], bas[1000];
+float ang[1000];
+int cntbullet = 0;
+void generatebullet() {
+	if (cntbullet >= 1000) return;
+	std::string vshader, fshader;
+	// 读取着色器并使用
+	vshader = "shaders/vshader.glsl";
+	fshader = "shaders/fshader.glsl";
+	int now = cntbullet++;
+	mov[now] = bas[now] = vec3(headPosX, gravity, headPosZ);
+	ang[now] = _yaw;
+	bullet[now] = new TriMesh();
+	bullet[now]->readOff("./assets/off/sphere.off");
+	std::string name = "bullet" + now;
+	painter->addMesh(bullet[now], name, "", vshader, fshader);
+	meshList.push_back(bullet[now]);
+}
+void drawbullet() {
+	mat4 modelView = mat4(1.0);
+	for (int i = 0; i < cntbullet; i++) {
+		if (mov[i].y + 0.4 < 0) continue;
+		modelView = mat4(1.0);
+		modelView = translate(modelView, vec3(0.0, 0.4, 0.0));
+		modelView = translate(modelView, mov[i]);
+		modelView = scale(modelView, vec3(0.2));
+		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), bas[i].y, -0.003 * cos(radians(ang[i])));
+		painter->drawMesh(i + 8, modelView, light, camera, true); //true设置是否绘制阴影		
+	}
+}
+void movebullet() {
 
-
+}
 void drawshootmodel() {
 	mat4 modelView = mat4(1.0);
 	modelView = translate(modelView, vec3(0.0, 0.23, 0.0));
@@ -148,7 +181,8 @@ void display()
 	drawshootmodel();
 	drawplanemodel();
 	painter->drawMeshes(light, camera, 2, 7);
-
+	if (cntbullet) drawbullet();
+	// painter->drawMeshes(light, camera, 8, 8 + cntbullet - 1);
 }
 
 
@@ -174,6 +208,12 @@ void printHelp()
 }
 
 // 键盘响应函数
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		generatebullet();
+	}
+}
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	float tmp;
@@ -306,6 +346,7 @@ int main(int argc, char **argv)
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); //捕抓鼠标
 	// 调用任何OpenGL的函数之前初始化GLAD
 	// ---------------------------------------
@@ -322,6 +363,8 @@ int main(int argc, char **argv)
 	printHelp();
 	// 启用深度测试
 	glEnable(GL_DEPTH_TEST);
+
+	// generatebullet();
 	while (!glfwWindowShouldClose(window))
 	{
 	    float currentFrame = glfwGetTime();

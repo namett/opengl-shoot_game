@@ -344,11 +344,16 @@ void right_torch(glm::mat4 modelMatrix) {
 	painter->drawMesh(idhuman[robot.Torch], modelMatrix * instance, light, camera, true);
 }
 // 右烟
+float speed_smoke = 0.0005;
+float high_smoke = 0;
 void right_smoke(glm::mat4 modelMatrix) {
 	// 本节点局部变换矩阵
+	high_smoke += speed_smoke; //移动烟
+	if (high_smoke >= 0.16) high_smoke = 0;
 	glm::mat4 instance = glm::mat4(1.0);
-	instance = glm::translate(instance, glm::vec3(0.0, 0.0, 0.0));
-	instance = glm::rotate(instance, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	instance = glm::translate(instance, glm::vec3(0.1, 0.0, -high_smoke));
+	instance = glm::rotate(instance, glm::radians(180.0f), glm::vec3(1, 0, 0));
+	instance = glm::rotate(instance, glm::radians(180.0f), glm::vec3(0, 1, 0));
 	
 	instance = glm::scale(instance, glm::vec3(0.5));
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
@@ -360,7 +365,7 @@ int indexbullet[1000];
 float ang[1000];
 bool vis[1000]; //判断是否绘制
 int cntbullet = 0, cntplanet = 0;
-std::vector <int> idcolorplane;
+int idcolorplane = -1;
 std::vector <vec2> pcolorplane; //(x, z)
 void generatebullet() {
 	if (cntbullet >= 1000) return;
@@ -378,20 +383,26 @@ void generatebullet() {
 	meshList.push_back(bullet[now]);
 	indexbullet[now] = meshList.size() - 1;
 }
+
 void generatebulletplane(vec2 center) {
 	std::string vshader, fshader;
 	// 读取着色器并使用
 	vshader = "shaders/vshader.glsl";
 	fshader = "shaders/fshader.glsl";
 	int now = cntplanet++;
-	TriMesh* plane = new TriMesh();
-	plane->generateSquare(vec3(0.2471, 0.0157, 0.6196));
-	std::string name = "plane_object" + now;
-	painter->addMesh(plane, name, "", vshader, fshader); //编号为1的平面
-	meshList.push_back(plane);
-	idcolorplane.push_back(meshList.size() - 1);
+	if (idcolorplane == -1) { //只绑定一次平面即可，因为溅射平面是固定的所以不需要多次绑定
+		TriMesh* plane = new TriMesh();
+		plane->generateSquare(vec3(0.2471, 0.0157, 0.6196));
+		std::string name = "plane_object" + now;
+		painter->addMesh(plane, name, "", vshader, fshader);
+		meshList.push_back(plane);
+		idcolorplane = meshList.size() - 1; //通过这个优化
+	}
 	pcolorplane.push_back(center);
 }
+mat4 mbullet[1000];
+int cntm = 0;
+bool vismbullet[1000];
 void drawbullet() {
 	mat4 modelView = mat4(1.0);
 	for (int i = 0; i < cntbullet; i++) {
@@ -407,7 +418,7 @@ void drawbullet() {
 		modelView = translate(modelView, mov[i]);
 		modelView = scale(modelView, vec3(0.2));
 		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), bas[i].y, -0.003 * cos(radians(ang[i])));
-		painter->drawMesh(indexbullet[i], modelView, light, camera, true); //true设置是否绘制阴影		
+		painter->drawMesh(indexbullet[i], mbullet[i] * modelView, light, camera, true); //true设置是否绘制阴影		
 	}
 }
 void drawbulletplane() {
@@ -420,7 +431,7 @@ void drawbulletplane() {
 		modelView = rotate(modelView, float(radians(90.0f)), vec3(1.0, 0.0, 0.0));
 		
 		// modelView = translate(modelView, vec3(pcolorplane[i].x, 0, pcolorplane[i].y));
-		painter->drawMesh(idcolorplane[i], modelView, light, camera, false);
+		painter->drawMesh(idcolorplane, modelView, light, camera, false);
 	}
 }
 void drawshootmodel() {
@@ -479,6 +490,8 @@ void drawhuman() {
 	// =========== 烟 ===========
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0.0, -1.0 * robot.SMOKE_HEIGHT - 1.0 * robot.TORCH_HEIGHT));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Smoke]), glm::vec3(1.0, 0.0, 0.0));
+	while (cntm < cntbullet) mbullet[cntm] = modelMatrix, cntm++;
+	// mbullet; //
 	right_smoke(modelMatrix);
 	modelMatrix = mstack.pop();
 	modelMatrix = mstack.pop();

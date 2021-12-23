@@ -84,10 +84,11 @@ void MeshPainter::bindObjectAndData(TriMesh *mesh, openGLObject &object, const s
 
 	glUniform1i(object.colorLocation, 0);
 	if (texture_image == "") {
-	//	glUniform1i(object.textureLocation, 0);
-		glUniform1i(object.colorLocation, 1);
+		// glUniform1i(object.textureLocation, 0);
+		
 	}
 	else {
+		glUniform1i(object.colorLocation, 1);
 		object.texture_image = texture_image;
 		// 读取纹理图片数
 		// 创建纹理的缓存对象

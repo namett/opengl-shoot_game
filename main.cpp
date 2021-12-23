@@ -147,7 +147,10 @@ struct Robot
 	float UPPER_LEG_WIDTH =  fbas; // 右臂宽度
 	float HEAD_HEIGHT = fbas * 2; //头的高度
 	float HEAD_WIDTH = fbas * 2; //头的宽度
-
+	float TORCH_WIDTH = fbas / 2;
+	float TORCH_HEIGHT = fbas * 2.5;
+	float SMOKE_WIDTH = fbas * 3 / 4;
+	float SMOKE_HEIGHT = fbas / 4;
 	// 关节角和菜单选项值
 	enum {
 		Torso,			// 躯干
@@ -156,6 +159,8 @@ struct Robot
 		LeftUpperArm,	// 左大臂
 		RightUpperLeg,	// 右大腿
 		LeftUpperLeg,	// 左大腿
+		Torch, //火把放在右边大臂上
+		Smoke, //烟在火把上方
 	};
 
 	// 关节角大小
@@ -168,12 +173,6 @@ struct Robot
 		0.0,    // LeftUpperLeg
 	};
 }robot;
-float theta[50];
-int num = 0;
-void inittheta() {
-	theta[0] = -33;
-	while (theta[num] != 33) theta[num + 1] = theta[num] + 3, num++;
-}
 class MatrixStack {
 	int		_index;
     int		_size;
@@ -246,7 +245,18 @@ void inithuman() {
 	painter->addMesh(rightleg, "rightleg", "./assets/human/rightleg.png", vshader, fshader);
 	meshList.push_back(rightleg);
 	idhuman[cnthuman++] = meshList.size() - 1;
-	
+	// 火把
+	TriMesh *torch = new TriMesh();
+	torch->readObj("./assets/human/torch.obj");
+	painter->addMesh(torch, "torch", "./assets/human/torch.png", vshader, fshader);
+	meshList.push_back(torch);
+	idhuman[cnthuman++] = meshList.size() - 1;
+	// 烟
+	TriMesh *smoke = new TriMesh();
+	smoke->readObj("./assets/human/smoke.obj");
+	painter->addMesh(smoke, "smoke", "./assets/human/smoke.png", vshader, fshader);
+	meshList.push_back(smoke);
+	idhuman[cnthuman++] = meshList.size() - 1;	
 }
 void torso(glm::mat4 modelMatrix) { //躯干
 	// 本节点局部变换矩阵
@@ -322,8 +332,28 @@ void right_upper_leg(glm::mat4 modelMatrix) {
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.RightUpperLeg], modelMatrix * instance, light, camera, true);
 }
-
-
+// 右火把
+void right_torch(glm::mat4 modelMatrix) {
+	// 本节点局部变换矩阵
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.0, 0.0, 0.0));
+	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
+	
+	// instance = glm::scale(instance, glm::vec3(robot.UPPER_ARM_WIDTH, robot.UPPER_ARM_HEIGHT, robot.UPPER_ARM_WIDTH));
+	// 乘以来自父物体的模型变换矩阵，绘制当前物体
+	painter->drawMesh(idhuman[robot.Torch], modelMatrix * instance, light, camera, true);
+}
+// 右烟
+void right_smoke(glm::mat4 modelMatrix) {
+	// 本节点局部变换矩阵
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.0, 0.0, 0.0));
+	instance = glm::rotate(instance, glm::radians(90.0f), glm::vec3(1, 0, 0));
+	
+	instance = glm::scale(instance, glm::vec3(0.5));
+	// 乘以来自父物体的模型变换矩阵，绘制当前物体
+	painter->drawMesh(idhuman[robot.Smoke], modelMatrix * instance, light, camera, true);
+}
 TriMesh *bullet[1000]; //最多1000发子弹
 vec3 mov[1000], bas[1000];
 int indexbullet[1000];
@@ -407,6 +437,7 @@ void drawplanemodel() {
 	modelView = scale(modelView, vec3(30.0));
 	painter->drawMesh(1, modelView, light, camera, false);
 }
+//跳跃参数
 float jump = 0.0;
 int cntjump = 0;
 void drawhuman() {
@@ -439,7 +470,19 @@ void drawhuman() {
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.5 * robot.TORSO_WIDTH + 0.5 * robot.UPPER_ARM_WIDTH, robot.TORSO_HEIGHT, 0.0));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.RightUpperArm]), glm::vec3(1.0, 0.0, 0.0));
 	right_upper_arm(modelMatrix);
-	modelMatrix = mstack.pop(); // 恢复躯干变换矩阵
+	mstack.push(modelMatrix); //保存右大臂矩阵
+	// =========== 火把 ===========
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.1 * robot.TORCH_WIDTH, -robot.TORCH_HEIGHT, -0.5 * robot.TORCH_HEIGHT));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Torch]), glm::vec3(1.0, 0.0, 0.0));
+	right_torch(modelMatrix);
+	mstack.push(modelMatrix); //保存火把矩阵
+	// =========== 烟 ===========
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0.0, -1.0 * robot.SMOKE_HEIGHT - 1.0 * robot.TORCH_HEIGHT));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Smoke]), glm::vec3(1.0, 0.0, 0.0));
+	right_smoke(modelMatrix);
+	modelMatrix = mstack.pop();
+	modelMatrix = mstack.pop();
+	modelMatrix = mstack.pop();
 	// =========== 左腿 ===========
 	mstack.push(modelMatrix);   // 保存躯干变换矩阵
     // @TODO: 左大腿

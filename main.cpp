@@ -31,6 +31,15 @@ double moveStep = 0.002;
 double height = DEFAULT_HEIGHT;
 const float gravity = -0.0002;
 
+//human移动
+#define W 0
+#define S 1
+#define A 2
+#define D 3
+float basS = 0.5;
+float s[4] = {basS, basS, basS, basS};
+bool svis[4];
+
 Camera* camera = new Camera();
 Light* light = new Light();
 MeshPainter *painter = new MeshPainter();
@@ -159,6 +168,12 @@ struct Robot
 		0.0,    // LeftUpperLeg
 	};
 }robot;
+float theta[50];
+int num = 0;
+void inittheta() {
+	theta[0] = -33;
+	while (theta[num] != 33) theta[num + 1] = theta[num] + 3, num++;
+}
 class MatrixStack {
 	int		_index;
     int		_size;
@@ -398,6 +413,7 @@ void drawhuman() {
 	MatrixStack mstack;
     // 躯干（这里我们希望机器人的躯干只绕Y轴旋转，所以只计算了RotateY）
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(headPosX, 0.5, headPosZ));
+	// TODO!!! 下面注释要开，正在debug
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Torso]), glm::vec3(0.0, 1.0, 0.0));
 	modelMatrix = glm::scale(modelMatrix, vec3(0.5));
 	torso(modelMatrix);
@@ -427,12 +443,14 @@ void drawhuman() {
     // @TODO: 左大腿
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.5 * robot.TORSO_WIDTH + 0.5 * robot.UPPER_LEG_WIDTH, 0, 0.0));
 	// std::cout<<-0.5 * robot.TORSO_WIDTH + 0.5 * robot.UPPER_LEG_WIDTH;
-	// modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
+	std::cout << robot.theta[robot.LeftUpperLeg] << std::endl;
+	// modelMatrix = glm::rotate(modelMatrix, glm::radians(100.0f), glm::vec3(1.0, 0.0, 0.0));
 	left_upper_leg(modelMatrix);
 	modelMatrix = mstack.pop(); // 恢复躯干变换矩阵
  	// @TODO: 右大腿
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.5 * robot.TORSO_WIDTH - 0.5 * robot.UPPER_LEG_WIDTH, 0, 0.0));
-	// modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.RightUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.RightUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
 	right_upper_leg(modelMatrix);
 }
 void display()
@@ -443,10 +461,10 @@ void display()
 	drawhuman();
 	// drawshootmodel();
 
-	// drawplanemodel();
-	// drawbulletplane();
-	// painter->drawMeshes(light, camera, 2, 7);
-	// if (cntbullet) drawbullet();
+	drawplanemodel();
+	drawbulletplane();
+	painter->drawMeshes(light, camera, 2, 7);
+	if (cntbullet) drawbullet();
 }
 
 
@@ -515,8 +533,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 	if (_pitch > maxUpAngle)	_pitch = maxUpAngle;
 	if (_pitch < minUpangle)	_pitch = minUpangle;
-
 	robot.theta[robot.Torso] = _yaw; //设置躯干的转角
+	if (svis[A]) robot.theta[robot.Torso] -= 45;
+	if (svis[D]) robot.theta[robot.Torso] += 45;
 	camera->upAngle = _pitch;
 	camera->rotateAngle = _yaw;
 }
@@ -540,18 +559,51 @@ void processinput(GLFWwindow *window) {
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		headPosX -= sin(radians(_yaw)) * moveStep;
 		headPosZ -= cos(radians(_yaw)) * moveStep;
+		// robot.theta[robot.LeftUpperLeg] = theta[robot.LeftUpperLeg] * 1.0f;
+		// robot.theta[robot.LeftUpperLeg] = 30.0f;
+		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[W] *= -1;
+		robot.theta[robot.LeftUpperLeg] += s[W];
+		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
+		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		headPosX += sin(radians(_yaw)) * moveStep;
 		headPosZ += cos(radians(_yaw)) * moveStep;
+
+		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[S] *= -1;
+		robot.theta[robot.LeftUpperLeg] -= s[S];
+		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
+		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		headPosX -= sin(radians(_yaw + 90)) * moveStep;
 		headPosZ -= cos(radians(_yaw + 90)) * moveStep;
+		if (svis[D]) svis[D] = false, robot.theta[robot.Torso] -= 45, robot.theta[robot.Head] += 45;
+		if (!svis[A]) svis[A] = true, robot.theta[robot.Torso] -= 45, robot.theta[robot.Head] += 45;
+		
+		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[W] *= -1;
+		robot.theta[robot.LeftUpperLeg] += s[W];
+		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
+		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		headPosX += sin(radians(_yaw + 90)) * moveStep;
 		headPosZ += cos(radians(_yaw + 90)) * moveStep;
+		if (svis[A]) svis[A] = false, robot.theta[robot.Torso] += 45, robot.theta[robot.Head] -= 45;
+		if (!svis[D]) svis[D] = true, robot.theta[robot.Torso] += 45, robot.theta[robot.Head] -= 45;
+		
+		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[W] *= -1;
+		robot.theta[robot.LeftUpperLeg] -= s[W];
+		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
+		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
+	}
+	else {
+		if (svis[A]) robot.theta[robot.Torso] += 45, robot.theta[robot.Head] -= 45;
+		if (svis[D]) robot.theta[robot.Torso] -= 45, robot.theta[robot.Head] += 45;
+		svis[0] = svis[1] = svis[2] = svis[3] = false;
+		s[0] = s[1] = s[2] = s[3] = basS;
+		robot.theta[robot.LeftUpperLeg] = robot.theta[robot.RightUpperArm] =
+		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = 0;
 	}
 	camera->cameraPos.x = headPosX;
 	camera->cameraPos.z = headPosZ;

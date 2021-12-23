@@ -407,12 +407,14 @@ void drawplanemodel() {
 	modelView = scale(modelView, vec3(30.0));
 	painter->drawMesh(1, modelView, light, camera, false);
 }
+float jump = 0.0;
+int cntjump = 0;
 void drawhuman() {
 	mat4 modelMatrix = mat4(1.0);
 	// 保持变换矩阵的栈
 	MatrixStack mstack;
     // 躯干（这里我们希望机器人的躯干只绕Y轴旋转，所以只计算了RotateY）
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(headPosX, 0.5, headPosZ));
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(headPosX, 0.5 + jump, headPosZ));
 	// TODO!!! 下面注释要开，正在debug
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Torso]), glm::vec3(0.0, 1.0, 0.0));
 	modelMatrix = glm::scale(modelMatrix, vec3(0.5));
@@ -556,17 +558,20 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 }
 void processinput(GLFWwindow *window) {
 	deltaTime = 1;
+	bool ok = false;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		ok = true;
 		headPosX -= sin(radians(_yaw)) * moveStep;
 		headPosZ -= cos(radians(_yaw)) * moveStep;
 		// robot.theta[robot.LeftUpperLeg] = theta[robot.LeftUpperLeg] * 1.0f;
 		// robot.theta[robot.LeftUpperLeg] = 30.0f;
 		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[W] *= -1;
-		robot.theta[robot.LeftUpperLeg] += s[W];
+		robot.theta[robot.LeftUpperLeg] -= s[W];
 		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
 		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		ok = true;
 		headPosX += sin(radians(_yaw)) * moveStep;
 		headPosZ += cos(radians(_yaw)) * moveStep;
 
@@ -575,35 +580,44 @@ void processinput(GLFWwindow *window) {
 		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
 		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		ok = true;
 		headPosX -= sin(radians(_yaw + 90)) * moveStep;
 		headPosZ -= cos(radians(_yaw + 90)) * moveStep;
 		if (svis[D]) svis[D] = false, robot.theta[robot.Torso] -= 45, robot.theta[robot.Head] += 45;
 		if (!svis[A]) svis[A] = true, robot.theta[robot.Torso] -= 45, robot.theta[robot.Head] += 45;
 		
-		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[W] *= -1;
-		robot.theta[robot.LeftUpperLeg] += s[W];
+		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[A] *= -1;
+		robot.theta[robot.LeftUpperLeg] -= s[A];
 		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
 		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		ok = true;
 		headPosX += sin(radians(_yaw + 90)) * moveStep;
 		headPosZ += cos(radians(_yaw + 90)) * moveStep;
 		if (svis[A]) svis[A] = false, robot.theta[robot.Torso] += 45, robot.theta[robot.Head] -= 45;
 		if (!svis[D]) svis[D] = true, robot.theta[robot.Torso] += 45, robot.theta[robot.Head] -= 45;
 		
-		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[W] *= -1;
-		robot.theta[robot.LeftUpperLeg] -= s[W];
+		if (abs(robot.theta[robot.LeftUpperLeg]) >= 45) s[D] *= -1;
+		robot.theta[robot.LeftUpperLeg] -= s[D];
 		robot.theta[robot.RightUpperArm] = robot.theta[robot.LeftUpperLeg];
 		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = robot.theta[robot.LeftUpperLeg] * -1;
 	}
-	else {
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !cntjump) cntjump = 2;
+	if (!ok) {
 		if (svis[A]) robot.theta[robot.Torso] += 45, robot.theta[robot.Head] -= 45;
 		if (svis[D]) robot.theta[robot.Torso] -= 45, robot.theta[robot.Head] += 45;
 		svis[0] = svis[1] = svis[2] = svis[3] = false;
 		s[0] = s[1] = s[2] = s[3] = basS;
 		robot.theta[robot.LeftUpperLeg] = robot.theta[robot.RightUpperArm] =
 		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = 0;
+	}
+	if (cntjump) {
+		if (cntjump == 2) jump += 0.002;
+		if (jump >= 0.3) cntjump--;
+		if (cntjump == 1) jump -= 0.002;
+		if (jump <= 0) cntjump = false, jump = 0.0;
 	}
 	camera->cameraPos.x = headPosX;
 	camera->cameraPos.z = headPosZ;

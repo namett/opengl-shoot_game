@@ -239,7 +239,7 @@ void torso(glm::mat4 modelMatrix) { //躯干
 	instance = glm::translate(instance, glm::vec3(0.0, 0.5 * robot.TORSO_HEIGHT, 0.0));
 	instance = glm::rotate(instance, glm::radians(180.0f), glm::vec3(0, 1, 0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
-	// instance = glm::scale(instance, vec3(0.5)); //因为原本都坐标有些大过1
+	
 	// instance = glm::scale(instance, glm::vec3(robot.TORSO_WIDTH, robot.TORSO_HEIGHT, robot.TORSO_WIDTH));
 
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
@@ -252,7 +252,7 @@ void head(glm::mat4 modelMatrix) {
 	instance = glm::translate(instance, glm::vec3(0.0, 0.5 * robot.HEAD_HEIGHT, 0.0));
 	instance = glm::rotate(instance, glm::radians(180.0f), glm::vec3(0, 1, 0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
-	// instance = glm::scale(instance, vec3(0.5)); //因为原本都坐标有些大过1
+	
 	// instance = glm::scale(instance, glm::vec3(robot.HEAD_WIDTH, robot.HEAD_HEIGHT, robot.HEAD_WIDTH));
 
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
@@ -264,7 +264,7 @@ void left_upper_arm(glm::mat4 modelMatrix) {
 	glm::mat4 instance = glm::mat4(1.0);
 	instance = glm::translate(instance, glm::vec3(0.0, -0.5 * robot.UPPER_ARM_HEIGHT, 0.0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
-	// instance = glm::scale(instance, vec3(0.5)); //因为原本都坐标有些大过1
+	
 	// instance = glm::scale(instance, glm::vec3(robot.UPPER_ARM_WIDTH, robot.UPPER_ARM_HEIGHT, robot.UPPER_ARM_WIDTH));
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.LeftUpperArm], modelMatrix * instance, light, camera, true);	
@@ -276,7 +276,7 @@ void right_upper_arm(glm::mat4 modelMatrix)
 	glm::mat4 instance = glm::mat4(1.0);
 	instance = glm::translate(instance, glm::vec3(0.0, -0.5 * robot.UPPER_ARM_HEIGHT, 0.0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
-	// instance = glm::scale(instance, vec3(0.5)); //因为原本都坐标有些大过1
+	
 	// instance = glm::scale(instance, glm::vec3(robot.UPPER_ARM_WIDTH, robot.UPPER_ARM_HEIGHT, robot.UPPER_ARM_WIDTH));
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.RightUpperArm], modelMatrix * instance, light, camera, true);
@@ -288,7 +288,7 @@ void left_upper_leg(glm::mat4 modelMatrix) {
 	instance = glm::translate(instance, glm::vec3(0.0, -0.5 * robot.UPPER_LEG_HEIGHT, 0.0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(0, 1, 0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
-	// instance = glm::scale(instance, vec3(0.5)); //因为原本都坐标有些大过1
+	
 	// instance = glm::scale(instance, glm::vec3(robot.UPPER_LEG_WIDTH, robot.UPPER_LEG_HEIGHT, robot.UPPER_LEG_WIDTH));
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.LeftUpperLeg], modelMatrix * instance, light, camera, true);
@@ -302,7 +302,7 @@ void right_upper_leg(glm::mat4 modelMatrix) {
 	
 	instance = glm::rotate(instance, glm::radians(180.0f), glm::vec3(0, 1, 0));
 	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
-	// instance = glm::scale(instance, vec3(0.5)); //因为原本都坐标有些大过1
+	
 	// instance = glm::scale(instance, glm::vec3(robot.UPPER_LEG_WIDTH, robot.UPPER_LEG_HEIGHT, robot.UPPER_LEG_WIDTH));
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.RightUpperLeg], modelMatrix * instance, light, camera, true);
@@ -397,8 +397,9 @@ void drawhuman() {
 	// 保持变换矩阵的栈
 	MatrixStack mstack;
     // 躯干（这里我们希望机器人的躯干只绕Y轴旋转，所以只计算了RotateY）
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0.0, 0.0));
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(headPosX, 0.5, headPosZ));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Torso]), glm::vec3(0.0, 1.0, 0.0));
+	modelMatrix = glm::scale(modelMatrix, vec3(0.5));
 	torso(modelMatrix);
 	mstack.push(modelMatrix); // 保存躯干变换矩阵
     // 头部（这里我们希望机器人的头部只绕Y轴旋转，所以只计算了RotateY）
@@ -441,6 +442,7 @@ void display()
 
 	drawhuman();
 	// drawshootmodel();
+
 	// drawplanemodel();
 	// drawbulletplane();
 	// painter->drawMeshes(light, camera, 2, 7);
@@ -514,6 +516,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	if (_pitch > maxUpAngle)	_pitch = maxUpAngle;
 	if (_pitch < minUpangle)	_pitch = minUpangle;
 
+	robot.theta[robot.Torso] = _yaw; //设置躯干的转角
 	camera->upAngle = _pitch;
 	camera->rotateAngle = _yaw;
 }

@@ -48,6 +48,8 @@ int cntjump = 0;
 vec3 enemypos;
 float enemyjump = 0.0, enemyjumpspeed = 0.002;
 int enemycntjump = 0;
+float enemyx = 0.0, enemyz = 0.0; //后退0.5
+
 
 Camera* camera = new Camera();
 Light* light = new Light();
@@ -398,6 +400,7 @@ struct Enemy {
 	vec3 Head_ld, Head_ur;
 	vec3 FrontFoot_ld, FrontFoot_ur;
 	vec3 BehindFoot_ld, BehindFoot_ur;
+	vec3 center;
 	glm::mat4 mv[10];
 	glm::mat4 ins[10];
 	bool visins[10];
@@ -473,6 +476,8 @@ void initenemy() {
 	idenemy[cntenemy++] = meshList.size() - 1;
 	getcollision(enemy.BehindFoot_ld, enemy.BehindFoot_ur, behindfoot->getVertexPositions());
 
+	enemy.center = enemy.Torso_ld + enemy.Torso_ur;
+	enemy.center = vec3(enemy.center.x / 2, enemy.center.y / 2, enemy.center.z / 2); //得到中心点
 }
 //敌人躯干
 void enemy_torso(glm::mat4 modelMatrix) {
@@ -720,13 +725,39 @@ void drawhuman() {
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.RightUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
 	right_upper_leg(modelMatrix);
 }
+float enemyang = 0;
+float enemyspeed = 0.0001;
+void calenemyang() { //计算敌人的角度
+	vec2 unit(0, -1); //初始向量
+	vec2 front(headPosX - enemypos.x, headPosZ - enemypos.z);
+	// front = normailze(front);
+	float cmul = unit.x * front.x + unit.y * front.y;
+	float lenfront = sqrt(front.x * front.x + front.y * front.y);
+	enemyang = acos(cmul / lenfront / 1) / (2 * M_PI) * 360;
+	float xmul = unit.x * front.y - unit.y * front.x;
+	if (xmul > 0) enemyang = -enemyang;
+	if (lenfront >= 3) //移动到一定距离不动
+		enemypos = vec3(enemypos.x + enemyspeed * front.x, enemypos.y, enemypos.z + enemyspeed * front.y);
+	
+
+	// 判断是否后退
+	if (enemycntjump == 2) enemypos.x -= enemyspeed * 7 * front.x, enemypos.z -= enemyspeed * 7 * front.y;
+	else enemyx = enemyz = 0;
+}
 void drawenemy() {
 	mat4 modelMatrix = mat4(1.0);
 	// 保持变换矩阵的栈
 	MatrixStack mstack;
     // 躯干（这里我们希望机器人的躯干只绕Y轴旋转，所以只计算了RotateY）
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(enemypos.x, 0.25 + enemyjump, enemypos.z));
+	calenemyang();
+
+
+
+	if (enemy.theta[enemy.Torso] > enemyang + 0.05) enemy.theta[enemy.Torso] -= 0.1;
+	if (enemy.theta[enemy.Torso] < enemyang - 0.05) enemy.theta[enemy.Torso] += 0.1;
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(enemypos.x + enemyx, 0.25 + enemyjump, enemypos.z + enemyz));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(enemy.theta[enemy.Torso]), glm::vec3(0.0, 1.0, 0.0));
+	// modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(0.0, 1.0, 0.0));
 	modelMatrix = glm::scale(modelMatrix, vec3(0.5));
 	enemy.mv[enemy.Torso] = modelMatrix; //存储当前变换矩阵
 	enemy_torso(modelMatrix);

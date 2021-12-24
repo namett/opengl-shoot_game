@@ -27,22 +27,27 @@ double minFOV = 0.5f, maxFOV = 16.0f;
 
 double headPosX = DEFAULT_HEAD_POS_X;
 double headPosZ = DEFAULT_HEAD_POS_Z;
-double moveStep = 0.002;
+double moveStep = 0.002; //TODO速率
 double height = DEFAULT_HEIGHT;
-const float gravity = -0.0002;
+const float gravity = -0.0002; //TODO速率
 
 //human移动
 #define W 0
 #define S 1
 #define A 2
 #define D 3
-float basS = 0.5;
+float basS = 0.5;//TODO速率
 float s[4] = {basS, basS, basS, basS};
 bool svis[4];
 
 //跳跃参数
-float jump = 0.0;
+float jump = 0.0, jumpspeed = 0.002;
 int cntjump = 0;
+
+//僵尸的移动参数+跳跃参数
+vec3 enemypos;
+float enemyjump = 0.0, enemyjumpspeed = 0.002;
+int enemycntjump = 0;
 
 Camera* camera = new Camera();
 Light* light = new Light();
@@ -143,7 +148,7 @@ void initSkyBox(std::string vshader, std::string fshader) {
 	
 }
 // 绘制human
-float fbas = 0.28;
+float fbas = 0.28; 
 struct Robot
 {
 	// 关节大小
@@ -205,7 +210,6 @@ public:
     }
 };
 int idhuman[100], cnthuman;
-float movhuman[100] = {0.53, 0.23, 0.23};
 void inithuman() {
 	std::string vshader, fshader;
 	// 读取着色器并使用
@@ -352,8 +356,8 @@ void right_torch(glm::mat4 modelMatrix) {
 	painter->drawMesh(idhuman[robot.Torch], modelMatrix * instance, light, camera, true);
 }
 // 右烟
-float speed_smoke = 0.0005;
-float high_smoke = 0;
+float speed_smoke = 0.0005; //TODO速率
+float high_smoke = 0; //TODO速率*次数
 void right_smoke(glm::mat4 modelMatrix) {
 	// 本节点局部变换矩阵
 	high_smoke += speed_smoke; //移动烟
@@ -368,32 +372,176 @@ void right_smoke(glm::mat4 modelMatrix) {
 	painter->drawMesh(idhuman[robot.Smoke], modelMatrix * instance, light, camera, true);
 }
 
-// TriMesh *bullet; //最多1000发子弹
-vec3 mov[1000], bas[1000];
+struct Enemy {
+	// 关节大小
+	float TORSO_HEIGHT = fbas * 3; //躯干高度
+	float TORSO_WIDTH = fbas * 2; //躯干宽度
+	float FOOT_HEIGHT = fbas * 1.5; //脚的高度
+	float FOOT_WIDTH = fbas * 2; //脚的宽度
+	float HEAD_HEIGHT = fbas * 2; //头的高度
+	float HEAD_WIDTH = fbas * 2; //头的宽度
+	// 关节角和菜单选项值
+	enum {
+		Torso,			// 躯干
+		Head,			// 头部
+		FrontFoot,	// 前腿
+		BehindFoot,	// 后腿
+	};
+	GLfloat theta[10] = {
+		0.0,    // Torso
+		0.0,    // Head
+		0.0,    // FrontFoot
+		0.0,    // BehindFoot
+	};
+	//碰撞检测参数
+	vec3 Torso_ld, Torso_ur;
+	vec3 Head_ld, Head_ur;
+	vec3 FrontFoot_ld, FrontFoot_ur;
+	vec3 BehindFoot_ld, BehindFoot_ur;
+	glm::mat4 mv[10];
+	glm::mat4 ins[10];
+	bool visins[10];
+} enemy;
+
+void getcollision(vec3 &ld, vec3 &rd, std::vector<vec3> &points) {
+	float max_x = -FLT_MAX;
+	float max_y = -FLT_MAX;
+	float max_z = -FLT_MAX;
+	float min_x = FLT_MAX;
+	float min_y = FLT_MAX;
+	float min_z = FLT_MAX;
+	for (int i = 0; i < points.size(); i++) {
+		auto& position = points[i];
+		if (position.x > max_x) max_x = position.x;
+		if (position.y > max_y) max_y = position.y;
+		if (position.z > max_z) max_z = position.z;
+		if (position.x < min_x) min_x = position.x;
+		if (position.y < min_y) min_y = position.y;
+		if (position.z < min_z) min_z = position.z;
+	}
+	ld = glm::vec3(max_x, max_y, max_z);
+	rd = glm::vec3(min_x, min_y, min_z);
+}
+bool checkcollision(vec3 ld, vec3 rd, int id, mat4 & modelview, vec3 sp) {
+	vec4 p = modelview * vec4(sp, 1.0);
+	vec4 sl = vec4(ld, 1), sr = vec4(rd, 1);
+	mat4 tmp = enemy.mv[id] * enemy.ins[id];
+	sl = tmp * sl;
+	sr = tmp * sr;
+	if (min(sl.x, sr.x) <= p.x && p.x <= max(sl.x, sr.x) && min(sl.y, sr.y) <= p.y &&
+	 p.y <= max(sl.y, sr.y) && min(sl.z, sr.z) <= p.z && p.z <= max(sl.z, sr.z)) 
+	 	return true;
+	else 
+		return false;
+}
+int idenemy[100], cntenemy;
+void initenemy() {
+	enemypos = vec3(headPosX + 3, 0, headPosZ + 3);
+	std::string vshader, fshader;
+	// 读取着色器并使用
+	vshader = "shaders/vshader.glsl";
+	fshader = "shaders/fshader.glsl";
+
+	//身体
+	TriMesh *body = new TriMesh();
+	body->readObj("./assets/enemy/body.obj");
+	painter->addMesh(body, "body", "./assets/enemy/body.png", vshader, fshader);
+	meshList.push_back(body);
+	idenemy[cntenemy++] = meshList.size() - 1;
+	getcollision(enemy.Torso_ld, enemy.Torso_ur, body->getVertexPositions());
+	//头
+	TriMesh *head = new TriMesh();
+	// head->setNormalize(false); //先除2
+	head->readObj("./assets/enemy/head.obj");
+	painter->addMesh(head, "head", "./assets/enemy/head.png", vshader, fshader);
+	meshList.push_back(head);
+	idenemy[cntenemy++] = meshList.size() - 1;
+	getcollision(enemy.Head_ld, enemy.Head_ur, head->getVertexPositions());
+	//前腿
+	TriMesh *frontfoot = new TriMesh();
+	frontfoot->readObj("./assets/enemy/foot.obj");
+	painter->addMesh(frontfoot, "frontfoot", "./assets/enemy/foot.png", vshader, fshader);
+	meshList.push_back(frontfoot);
+	idenemy[cntenemy++] = meshList.size() - 1;
+	getcollision(enemy.FrontFoot_ld, enemy.FrontFoot_ur, frontfoot->getVertexPositions());
+
+	//后腿
+	TriMesh *behindfoot = new TriMesh();
+	behindfoot->readObj("./assets/enemy/foot.obj");
+	painter->addMesh(behindfoot, "behindfoot", "./assets/enemy/foot.png", vshader, fshader);
+	meshList.push_back(behindfoot);
+	idenemy[cntenemy++] = meshList.size() - 1;
+	getcollision(enemy.BehindFoot_ld, enemy.BehindFoot_ur, behindfoot->getVertexPositions());
+
+}
+//敌人躯干
+void enemy_torso(glm::mat4 modelMatrix) {
+	// 本节点局部变换矩阵
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.0, 0.5 * enemy.TORSO_HEIGHT, 0.0));
+	instance = glm::rotate(instance, glm::radians(90.0f), glm::vec3(0, 1, 0));
+	instance = glm::rotate(instance, glm::radians(0.0f), glm::vec3(1, 0, 0));
+	enemy.ins[enemy.Torso] = instance;
+	// 乘以来自父物体的模型变换矩阵，绘制当前物体
+	painter->drawMesh(idenemy[enemy.Torso], modelMatrix * instance, light, camera, true);
+}
+// 敌人头部
+void enemy_head(glm::mat4 modelMatrix) {
+	// 本节点局部变换矩阵
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.0, 0.5 * enemy.HEAD_HEIGHT, 0.0));
+	instance = glm::rotate(instance, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+	enemy.ins[enemy.Head] = instance;
+	// 乘以来自父物体的模型变换矩阵，绘制当前物体
+	painter->drawMesh(idenemy[enemy.Head], modelMatrix * instance, light, camera, true);
+}
+// 敌人前脚
+void enemy_front_foot(glm::mat4 modelMatrix) {
+	// 本节点局部变换矩阵
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.0, -0.5 * enemy.FOOT_HEIGHT, 0.0));
+	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(0, 1, 0));
+	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
+	enemy.ins[enemy.FrontFoot] = instance;
+	// 乘以来自父物体的模型变换矩阵，绘制当前物体
+	painter->drawMesh(idenemy[enemy.FrontFoot], modelMatrix * instance, light, camera, true);
+}
+// 敌人后脚
+void enemy_behind_foot(glm::mat4 modelMatrix) {
+	// 本节点局部变换矩阵
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.0, -0.5 * enemy.FOOT_HEIGHT, 0.0));
+	instance = glm::rotate(instance, glm::radians(90.0f), glm::vec3(0, 1, 0));
+	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(1, 0, 0));
+	enemy.ins[enemy.BehindFoot] = instance;
+	// 乘以来自父物体的模型变换矩阵，绘制当前物体
+	painter->drawMesh(idenemy[enemy.BehindFoot], modelMatrix * instance, light, camera, true);
+}
+
+
+vec3 mov[1000], bas[1000];//最多1000发子弹
 int indexbullet = -1;
 float ang[1000];
 bool vis[1000]; //判断是否绘制
 int cntbullet = 0, cntplanet = 0, cntpos = 0;
 int idcolorplane = -1;
 std::vector <vec2> pcolorplane; //(x, z)
-vec3 tmp[1000];
 mat4 ibullet[1000];
-float basetmp = -0.002;
 TriMesh *bullet;
 std::vector<vec3> vpbullet;
 std::vector<vec3i> fbullet;
 std::vector<vec3i> vtbullet;
-void posbullet() {
-	vec4 p;
+void posbullet() { //TODO可以减少循环次数 将子弹移到火把位置
 	for (; cntpos < cntm; cntpos++) { //枚举那些未被枚举的子弹
-		for (int i = 0; i < fbullet.size(); i++) {
-			if (vtbullet[i].x == 0) {
-				mov[cntpos] = mbullet[cntpos] * vec4(vpbullet[fbullet[i].x], 1.0);
-				break;
-			}
-		}
+		// for (int i = 0; i < fbullet.size(); i++) {
+		// 	if (vtbullet[i].x>=0) {
+		mov[cntpos] = mbullet[cntpos] * vec4(vpbullet[fbullet[0].x], 1.0);
+				// break;
+			// }
+		// }
 	}
 }
+vec3 circlepoint;
 void generatebullet() {
 	if (cntbullet >= 1000) return;
 	std::string vshader, fshader;
@@ -401,11 +549,7 @@ void generatebullet() {
 	vshader = "shaders/vshader.glsl";
 	fshader = "shaders/fshader.glsl";
 	int now = cntbullet++;
-	// mov[now] = bas[now] = vec3(headPosX, gravity, headPosZ);
-	// mov[now] = bas[now] = vec3(headPosX, 0.45 + jump, headPosZ);
 	posbullet();
-	tmp[now] = vec3(0, gravity, 0);
-	// ang[now] = _yaw;
 	ang[now] = robot.theta[robot.Torso];
 	if (indexbullet == -1) {
 		bullet = new TriMesh();
@@ -416,7 +560,25 @@ void generatebullet() {
 		std::string name = "bullet" + now;
 		painter->addMesh(bullet, name, "", vshader, fshader);
 		meshList.push_back(bullet);
-		indexbullet = meshList.size() - 1;		
+		indexbullet = meshList.size() - 1;	
+
+		float max_x = -FLT_MAX;
+		float max_y = -FLT_MAX;
+		float max_z = -FLT_MAX;
+		float min_x = FLT_MAX;
+		float min_y = FLT_MAX;
+		float min_z = FLT_MAX;
+		for (int i = 0; i < vpbullet.size(); i++) {
+			auto& position = vpbullet[i];
+			if (position.x > max_x) max_x = position.x;
+			if (position.y > max_y) max_y = position.y;
+			if (position.z > max_z) max_z = position.z;
+			if (position.x < min_x) min_x = position.x;
+			if (position.y < min_y) min_y = position.y;
+			if (position.z < min_z) min_z = position.z;
+		}
+		circlepoint = vec3((max_x + min_x) / 2.0, (max_y + min_y) / 2.0, (max_z + min_z) / 2.0);
+
 	}
 
 }
@@ -438,11 +600,11 @@ void generatebulletplane(vec2 center) {
 	pcolorplane.push_back(center);
 }
 
-// void 
+
 void drawbullet() {
 	mat4 modelView = mat4(1.0);
 	for (int i = 0; i < cntbullet; i++) {
-		if (mov[i].y < 0) { //碰撞判断呢
+		if (mov[i].y < 0 || vis[i]) { //碰撞判断呢
 			if (!vis[i]) {
 				vis[i] = true;
 				generatebulletplane(vec2(mov[i].x, mov[i].z));
@@ -450,17 +612,22 @@ void drawbullet() {
 			continue;
 		}
 		modelView = mat4(1.0);
-		// std::cout << modelView[1][1];
-		// modelView = translate(modelView, vec3(0.0, 0.4, 0.0));
 		modelView = translate(modelView, mov[i]);
 		modelView = scale(modelView, vec3(0.2));
-		// tmp[i] = tmp[i] + vec3(0, gravity, basetmp);
-		// modelView = translate(modelView, tmp[i]);
-		// modelView = scale(modelView, vec3(0.2));
-		// ibullet[i] = mbullet[i] * modelView;
+		if (!vis[i]) {
+			if (checkcollision(enemy.Torso_ld, enemy.Torso_ur, enemy.Torso, modelView, circlepoint) || 
+			checkcollision(enemy.Head_ld, enemy.Head_ur, enemy.Head, modelView, circlepoint) || 
+			checkcollision(enemy.FrontFoot_ld, enemy.FrontFoot_ur, enemy.FrontFoot, modelView, circlepoint) || 
+			checkcollision(enemy.BehindFoot_ld, enemy.BehindFoot_ur, enemy.BehindFoot, modelView, circlepoint)) {
+				vis[i] = true;
+				//TODO
+				enemycntjump = 2;
+				continue; 
+			}
+		}
+		// TODO速率 -0.003
 		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), gravity, -0.003 * cos(radians(ang[i])));
 		painter->drawMesh(indexbullet, modelView, light, camera, true); //true设置是否绘制阴影		
-		// painter->drawMesh(indexbullet, ibullet[i], light, camera, true); //true设置是否绘制阴影		
 	}
 }
 void drawbulletplane() {
@@ -553,6 +720,39 @@ void drawhuman() {
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.RightUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
 	right_upper_leg(modelMatrix);
 }
+void drawenemy() {
+	mat4 modelMatrix = mat4(1.0);
+	// 保持变换矩阵的栈
+	MatrixStack mstack;
+    // 躯干（这里我们希望机器人的躯干只绕Y轴旋转，所以只计算了RotateY）
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(enemypos.x, 0.25 + enemyjump, enemypos.z));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(enemy.theta[enemy.Torso]), glm::vec3(0.0, 1.0, 0.0));
+	modelMatrix = glm::scale(modelMatrix, vec3(0.5));
+	enemy.mv[enemy.Torso] = modelMatrix; //存储当前变换矩阵
+	enemy_torso(modelMatrix);
+	mstack.push(modelMatrix); // 保存躯干变换矩阵
+    // 头部（这里我们希望机器人的头部只绕Y轴旋转，所以只计算了RotateY）
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, enemy.TORSO_HEIGHT, 0.0));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(enemy.theta[enemy.Head]), glm::vec3(0.0, 1.0, 0.0));
+	enemy.mv[enemy.Head] = modelMatrix;
+	enemy_head(modelMatrix);
+	modelMatrix = mstack.pop(); // 恢复躯干变换矩阵
+
+	// =========== 腿 ===========
+	mstack.push(modelMatrix);   // 保存躯干变换矩阵
+    // 前腿（这里我们希望enemy的前腿跟着上面转就好)
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0, -fbas));
+	// modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperArm]), glm::vec3(1.0, 0.0, 0.0));
+	enemy.mv[enemy.FrontFoot] = modelMatrix;
+	enemy_behind_foot(modelMatrix);
+	modelMatrix = mstack.pop(); // 恢复躯干变换矩阵
+    // 后腿（这里我们希望enemy的后腿跟着上面转就好)
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0, fbas));
+	// modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperArm]), glm::vec3(1.0, 0.0, 0.0));
+	enemy.mv[enemy.BehindFoot] = modelMatrix;
+	enemy_front_foot(modelMatrix);	
+
+}
 void display()
 {
 
@@ -560,6 +760,7 @@ void display()
 
 	drawhuman();
 	// drawshootmodel();
+	drawenemy();
 
 	drawplanemodel();
 	drawbulletplane();
@@ -595,8 +796,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
 		generatebullet();
 	}
 }
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
-{
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	if (action == GLFW_PRESS) {
 		switch (key)
 		{
@@ -712,10 +912,16 @@ void processinput(GLFWwindow *window) {
 		robot.theta[robot.LeftUpperArm] = robot.theta[robot.RightUpperLeg] = 0;
 	}
 	if (cntjump) {
-		if (cntjump == 2) jump += 0.002;
+		if (cntjump == 2) jump += jumpspeed; //TODO速率
 		if (jump >= 0.3) cntjump--;
-		if (cntjump == 1) jump -= 0.002;
-		if (jump <= 0) cntjump = false, jump = 0.0;
+		if (cntjump == 1) jump -= jumpspeed; //0.002
+		if (jump <= 0) cntjump = 0, jump = 0.0;
+	}
+	if (enemycntjump) {
+		if (enemycntjump == 2) enemyjump += enemyjumpspeed; //TODO速率
+		if (enemyjump >= 0.3) enemycntjump--;
+		if (enemycntjump == 1) enemyjump -= enemyjumpspeed; //0.002
+		if (enemyjump <= 0) enemycntjump = 0, enemyjump = 0.0;
 	}
 	camera->cameraPos.x = headPosX;
 	camera->cameraPos.z = headPosZ;
@@ -789,6 +995,7 @@ int main(int argc, char **argv)
 	init();
 	initSkyBox("./shaders/skyvshader.glsl", "./shaders/skyfshader.glsl");
 	inithuman();
+	initenemy();
 	// 输出帮助信息
 	printHelp();
 	// 启用深度测试

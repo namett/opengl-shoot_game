@@ -60,7 +60,7 @@ std::vector<glm::vec3> TriMesh::getPoints(){ return points;}
 std::vector<glm::vec3> TriMesh::getColors(){ return colors; }
 std::vector<glm::vec3> TriMesh::getNormals(){ return normals;}
 std::vector<glm::vec2> TriMesh::getTextures(){ return textures; }
-
+std::vector<vec3i> TriMesh::getTexturesindex() {return texture_index;}
 
 void TriMesh::computeTriangleNormals()
 {

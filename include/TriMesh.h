@@ -35,7 +35,7 @@ public:
 	std::vector<glm::vec3> getColors();
 	std::vector<glm::vec3> getNormals();
 	std::vector<glm::vec2> getTextures();
-
+	std::vector<vec3i> TriMesh::getTexturesindex();
 	void computeTriangleNormals();
 	void computeVertexNormals();
 

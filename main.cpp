@@ -40,10 +40,18 @@ float basS = 0.5;
 float s[4] = {basS, basS, basS, basS};
 bool svis[4];
 
+//跳跃参数
+float jump = 0.0;
+int cntjump = 0;
+
 Camera* camera = new Camera();
 Light* light = new Light();
 MeshPainter *painter = new MeshPainter();
 
+mat4 mbullet[1000];
+int cntm = 0;
+bool vismbullet[1000];
+bool switch_perspective = true;
 // 这个用来回收和删除我们创建的物体对象
 std::vector<TriMesh *> meshList;
 
@@ -359,14 +367,33 @@ void right_smoke(glm::mat4 modelMatrix) {
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.Smoke], modelMatrix * instance, light, camera, true);
 }
-TriMesh *bullet[1000]; //最多1000发子弹
+
+// TriMesh *bullet; //最多1000发子弹
 vec3 mov[1000], bas[1000];
-int indexbullet[1000];
+int indexbullet = -1;
 float ang[1000];
 bool vis[1000]; //判断是否绘制
-int cntbullet = 0, cntplanet = 0;
+int cntbullet = 0, cntplanet = 0, cntpos = 0;
 int idcolorplane = -1;
 std::vector <vec2> pcolorplane; //(x, z)
+vec3 tmp[1000];
+mat4 ibullet[1000];
+float basetmp = -0.002;
+TriMesh *bullet;
+std::vector<vec3> vpbullet;
+std::vector<vec3i> fbullet;
+std::vector<vec3i> vtbullet;
+void posbullet() {
+	vec4 p;
+	for (; cntpos < cntm; cntpos++) { //枚举那些未被枚举的子弹
+		for (int i = 0; i < fbullet.size(); i++) {
+			if (vtbullet[i].x == 0) {
+				mov[cntpos] = mbullet[cntpos] * vec4(vpbullet[fbullet[i].x], 1.0);
+				break;
+			}
+		}
+	}
+}
 void generatebullet() {
 	if (cntbullet >= 1000) return;
 	std::string vshader, fshader;
@@ -374,14 +401,24 @@ void generatebullet() {
 	vshader = "shaders/vshader.glsl";
 	fshader = "shaders/fshader.glsl";
 	int now = cntbullet++;
-	mov[now] = bas[now] = vec3(headPosX, gravity, headPosZ);
-	ang[now] = _yaw;
-	bullet[now] = new TriMesh();
-	bullet[now]->readOff("./assets/off/sphere.off");
-	std::string name = "bullet" + now;
-	painter->addMesh(bullet[now], name, "", vshader, fshader);
-	meshList.push_back(bullet[now]);
-	indexbullet[now] = meshList.size() - 1;
+	// mov[now] = bas[now] = vec3(headPosX, gravity, headPosZ);
+	// mov[now] = bas[now] = vec3(headPosX, 0.45 + jump, headPosZ);
+	posbullet();
+	tmp[now] = vec3(0, gravity, 0);
+	// ang[now] = _yaw;
+	ang[now] = robot.theta[robot.Torso];
+	if (indexbullet == -1) {
+		bullet = new TriMesh();
+		bullet->readOff("./assets/off/sphere.off");
+		vpbullet = bullet->getVertexPositions();
+		fbullet = bullet->getFaces();
+		vtbullet = bullet->getTexturesindex();
+		std::string name = "bullet" + now;
+		painter->addMesh(bullet, name, "", vshader, fshader);
+		meshList.push_back(bullet);
+		indexbullet = meshList.size() - 1;		
+	}
+
 }
 
 void generatebulletplane(vec2 center) {
@@ -400,13 +437,12 @@ void generatebulletplane(vec2 center) {
 	}
 	pcolorplane.push_back(center);
 }
-mat4 mbullet[1000];
-int cntm = 0;
-bool vismbullet[1000];
+
+// void 
 void drawbullet() {
 	mat4 modelView = mat4(1.0);
 	for (int i = 0; i < cntbullet; i++) {
-		if (mov[i].y + 0.4 < 0) {
+		if (mov[i].y < 0) { //碰撞判断呢
 			if (!vis[i]) {
 				vis[i] = true;
 				generatebulletplane(vec2(mov[i].x, mov[i].z));
@@ -414,11 +450,17 @@ void drawbullet() {
 			continue;
 		}
 		modelView = mat4(1.0);
-		modelView = translate(modelView, vec3(0.0, 0.4, 0.0));
+		// std::cout << modelView[1][1];
+		// modelView = translate(modelView, vec3(0.0, 0.4, 0.0));
 		modelView = translate(modelView, mov[i]);
 		modelView = scale(modelView, vec3(0.2));
-		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), bas[i].y, -0.003 * cos(radians(ang[i])));
-		painter->drawMesh(indexbullet[i], mbullet[i] * modelView, light, camera, true); //true设置是否绘制阴影		
+		// tmp[i] = tmp[i] + vec3(0, gravity, basetmp);
+		// modelView = translate(modelView, tmp[i]);
+		// modelView = scale(modelView, vec3(0.2));
+		// ibullet[i] = mbullet[i] * modelView;
+		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), gravity, -0.003 * cos(radians(ang[i])));
+		painter->drawMesh(indexbullet, modelView, light, camera, true); //true设置是否绘制阴影		
+		// painter->drawMesh(indexbullet, ibullet[i], light, camera, true); //true设置是否绘制阴影		
 	}
 }
 void drawbulletplane() {
@@ -448,15 +490,13 @@ void drawplanemodel() {
 	modelView = scale(modelView, vec3(30.0));
 	painter->drawMesh(1, modelView, light, camera, false);
 }
-//跳跃参数
-float jump = 0.0;
-int cntjump = 0;
+
 void drawhuman() {
 	mat4 modelMatrix = mat4(1.0);
 	// 保持变换矩阵的栈
 	MatrixStack mstack;
     // 躯干（这里我们希望机器人的躯干只绕Y轴旋转，所以只计算了RotateY）
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(headPosX, 0.5 + jump, headPosZ));
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(headPosX, 0.45 + jump, headPosZ));
 	// TODO!!! 下面注释要开，正在debug
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Torso]), glm::vec3(0.0, 1.0, 0.0));
 	modelMatrix = glm::scale(modelMatrix, vec3(0.5));
@@ -490,7 +530,9 @@ void drawhuman() {
 	// =========== 烟 ===========
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0, 0.0, -1.0 * robot.SMOKE_HEIGHT - 1.0 * robot.TORCH_HEIGHT));
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Smoke]), glm::vec3(1.0, 0.0, 0.0));
+	
 	while (cntm < cntbullet) mbullet[cntm] = modelMatrix, cntm++;
+	posbullet();
 	// mbullet; //
 	right_smoke(modelMatrix);
 	modelMatrix = mstack.pop();
@@ -502,7 +544,7 @@ void drawhuman() {
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.5 * robot.TORSO_WIDTH + 0.5 * robot.UPPER_LEG_WIDTH, 0, 0.0));
 	// std::cout<<-0.5 * robot.TORSO_WIDTH + 0.5 * robot.UPPER_LEG_WIDTH;
 	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperLeg]), glm::vec3(1.0, 0.0, 0.0));
-	std::cout << robot.theta[robot.LeftUpperLeg] << std::endl;
+	// std::cout << robot.theta[robot.LeftUpperLeg] << std::endl;
 	// modelMatrix = glm::rotate(modelMatrix, glm::radians(100.0f), glm::vec3(1.0, 0.0, 0.0));
 	left_upper_leg(modelMatrix);
 	modelMatrix = mstack.pop(); // 恢复躯干变换矩阵
@@ -547,7 +589,6 @@ void printHelp()
 
 }
 
-// 键盘响应函数 TODO!!!!!!!!!!!!!!!!!!!!!!!!
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
@@ -556,16 +597,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
 }
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	float tmp;
-	glm::vec4 ambient;
 	if (action == GLFW_PRESS) {
 		switch (key)
 		{
-		case GLFW_KEY_ESCAPE: exit(EXIT_SUCCESS); break;
-		case GLFW_KEY_H: printHelp(); break;
-		default:
-			camera->keyboard(key, action, mode);
-			break;
+			case GLFW_KEY_ESCAPE: exit(EXIT_SUCCESS); break;
+			case GLFW_KEY_H: printHelp(); break;
+			case GLFW_KEY_Q: switch_perspective ^= true; break; //切换视角
+			default:
+				camera->keyboard(key, action, mode);
+				break;
 		}
 	}
 }
@@ -591,9 +631,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 	if (_pitch > maxUpAngle)	_pitch = maxUpAngle;
 	if (_pitch < minUpangle)	_pitch = minUpangle;
-	robot.theta[robot.Torso] = _yaw; //设置躯干的转角
-	if (svis[A]) robot.theta[robot.Torso] -= 45;
-	if (svis[D]) robot.theta[robot.Torso] += 45;
+	if (switch_perspective) { //切换视角
+		robot.theta[robot.Torso] = _yaw; //设置躯干的转角
+		if (svis[A]) robot.theta[robot.Torso] -= 45;
+		if (svis[D]) robot.theta[robot.Torso] += 45;		
+	}
+
 	camera->upAngle = _pitch;
 	camera->rotateAngle = _yaw;
 }
@@ -613,7 +656,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	camera->upAngle = _pitch;
 }
 void processinput(GLFWwindow *window) {
-	deltaTime = 1;
 	bool ok = false;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		ok = true;

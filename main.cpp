@@ -29,7 +29,7 @@ double headPosX = DEFAULT_HEAD_POS_X;
 double headPosZ = DEFAULT_HEAD_POS_Z;
 double moveStep = 0.002; //TODO速率
 double height = DEFAULT_HEIGHT;
-const float gravity = -0.0002; //TODO速率
+const float gravity = -0.0004; //TODO速率
 
 //human移动
 #define W 0
@@ -50,6 +50,9 @@ float enemyjump = 0.0, enemyjumpspeed = 0.002;
 int enemycntjump = 0;
 float enemyx = 0.0, enemyz = 0.0; //后退0.5
 
+// 剑移动参数
+int cntsword = 0;
+float angsword = 0.0;
 
 Camera* camera = new Camera();
 Light* light = new Light();
@@ -84,8 +87,10 @@ void init()
 	meshList.push_back(cube);
 	
 	TriMesh* plane = new TriMesh();
-	plane->generateSquare(vec3(0.0118, 0.4, 0.302));
-	painter->addMesh(plane, "plane_object", "", vshader, fshader); //编号为1的平面
+	plane->readObj("./assets/plane.obj");
+	// plane->generateSquare(vec3(0.0118, 0.4, 0.302));
+	painter->addMesh(plane, "plane_object", "./assets/plane.png", vshader, fshader); //编号为1的平面
+	// painter->addMesh(plane, "plane_object", "", vshader, fshader); //编号为1的平面
 	meshList.push_back(plane);
 	glClearColor(0.3, 0.4, 0.5, 1.0);
 	// glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -166,6 +171,7 @@ struct Robot
 	float TORCH_HEIGHT = fbas * 2.5;
 	float SMOKE_WIDTH = fbas * 3 / 4;
 	float SMOKE_HEIGHT = fbas / 4;
+	float SWORD_HEIGHT = fbas * 2;
 	// 关节角和菜单选项值
 	enum {
 		Torso,			// 躯干
@@ -176,6 +182,7 @@ struct Robot
 		LeftUpperLeg,	// 左大腿
 		Torch, //火把放在右边大臂上
 		Smoke, //烟在火把上方
+		Sword,
 	};
 
 	// 关节角大小
@@ -271,6 +278,12 @@ void inithuman() {
 	painter->addMesh(smoke, "smoke", "./assets/human/smoke.png", vshader, fshader);
 	meshList.push_back(smoke);
 	idhuman[cnthuman++] = meshList.size() - 1;	
+	// 剑
+	TriMesh *sword = new TriMesh();
+	sword->readObj("./assets/human/sword.obj");
+	painter->addMesh(sword, "sword", "./assets/human/sword.png", vshader, fshader);
+	meshList.push_back(sword);
+	idhuman[cnthuman++] = meshList.size() - 1;
 }
 void torso(glm::mat4 modelMatrix) { //躯干
 	// 本节点局部变换矩阵
@@ -373,7 +386,15 @@ void right_smoke(glm::mat4 modelMatrix) {
 	// 乘以来自父物体的模型变换矩阵，绘制当前物体
 	painter->drawMesh(idhuman[robot.Smoke], modelMatrix * instance, light, camera, true);
 }
-
+// 左剑
+void left_sword(glm::mat4 modelMatrix) {
+	glm::mat4 instance = glm::mat4(1.0);
+	instance = glm::translate(instance, glm::vec3(0.2, 0.2, -0.4));
+	instance = glm::rotate(instance, glm::radians(180.0f), glm::vec3(0, 0, 1));
+	instance = glm::rotate(instance, glm::radians(270.0f), glm::vec3(0, 1, 0));
+	
+	painter->drawMesh(idhuman[robot.Sword], modelMatrix * instance, light, camera, true);
+}
 struct Enemy {
 	// 关节大小
 	float TORSO_HEIGHT = fbas * 3; //躯干高度
@@ -631,7 +652,7 @@ void drawbullet() {
 			}
 		}
 		// TODO速率 -0.003
-		mov[i] = mov[i] + vec3(-0.003 * sin(radians(ang[i])), gravity, -0.003 * cos(radians(ang[i])));
+		mov[i] = mov[i] + vec3(-0.006 * sin(radians(ang[i])), gravity, -0.006 * cos(radians(ang[i])));
 		painter->drawMesh(indexbullet, modelView, light, camera, true); //true设置是否绘制阴影		
 	}
 }
@@ -657,13 +678,22 @@ void drawshootmodel() {
 }
 void drawplanemodel() {
 	mat4 modelView = mat4(1.0);
-	modelView = translate(modelView, vec3(0.0, -0.005, 0.0)); //
-	modelView = rotate(modelView, float(radians(90.0f)), vec3(1.0, 0.0, 0.0));
-	modelView = scale(modelView, vec3(30.0));
+	// modelView = translate(modelView, vec3(0.0, -0.01, 0.0)); //
+	modelView = translate(modelView, vec3(0.0, -0.05, 0.0)); //
+	// modelView = rotate(modelView, float(radians(90.0f)), vec3(1.0, 0.0, 0.0));
+	modelView = scale(modelView, vec3(30.0, 1, 30.0));
 	painter->drawMesh(1, modelView, light, camera, false);
 }
 
 void drawhuman() {
+	if (cntsword == 2) {
+		if (angsword <= 45) angsword += basS;
+		else cntsword = 1;
+	}
+	if (cntsword == 1) {
+		if (angsword >= 0) angsword -= basS;
+		else cntsword = 0, angsword = 0.0;
+	}
 	mat4 modelMatrix = mat4(1.0);
 	// 保持变换矩阵的栈
 	MatrixStack mstack;
@@ -684,8 +714,14 @@ void drawhuman() {
 	mstack.push(modelMatrix);   // 保存躯干变换矩阵
     // 左大臂（这里我们希望机器人的左大臂只绕X轴旋转，所以只计算了RotateX，后面同理）
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.5 * robot.TORSO_WIDTH - 0.5 * robot.UPPER_ARM_WIDTH, robot.TORSO_HEIGHT, 0.0));
-	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperArm]), glm::vec3(1.0, 0.0, 0.0));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.LeftUpperArm] + angsword), glm::vec3(1.0, 0.0, 0.0));
 	left_upper_arm(modelMatrix);
+	// =========== 左剑 ===========
+	mstack.push(modelMatrix); //保存左臂变换矩阵
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0, -robot.UPPER_ARM_HEIGHT, 0));
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(robot.theta[robot.Sword]), glm::vec3(1.0, 0.0, 0.0));
+	left_sword(modelMatrix);
+	modelMatrix = mstack.pop(); //恢复左臂变换矩阵
 	modelMatrix = mstack.pop(); // 恢复躯干变换矩阵
     // =========== 右臂 ===========
 	mstack.push(modelMatrix);   // 保存躯干变换矩阵
@@ -825,6 +861,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		generatebullet();
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		cntsword = 2;
 	}
 }
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -1024,7 +1063,7 @@ int main(int argc, char **argv)
 
 	// Init mesh, shaders, buffer
 	init();
-	initSkyBox("./shaders/skyvshader.glsl", "./shaders/skyfshader.glsl");
+	initSkyBox("./shaders/vshader.glsl", "./shaders/fshader.glsl");
 	inithuman();
 	initenemy();
 	// 输出帮助信息

@@ -1,3 +1,3 @@
-C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/main.dir
-C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/ASUS/Desktop/射击小游戏/build/CMakeFiles/ZERO_CHECK.dir
+D:/fork/opengl-shoot_game/build/CMakeFiles/main.dir
+D:/fork/opengl-shoot_game/build/CMakeFiles/ALL_BUILD.dir
+D:/fork/opengl-shoot_game/build/CMakeFiles/ZERO_CHECK.dir

@@ -27,7 +27,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "c:/Users/ASUS/Desktop/射击小游戏/build"
+			"value" : "d:/fork/opengl-shoot_game/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -479,7 +479,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "C:/Users/ASUS/Desktop/射击小游戏"
+			"value" : "D:/fork/opengl-shoot_game"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1263,7 +1263,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/ASUS/Desktop/射击小游戏/build"
+			"value" : "D:/fork/opengl-shoot_game/build"
 		},
 		{
 			"name" : "main_IS_TOP_LEVEL",
@@ -1287,7 +1287,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/ASUS/Desktop/射击小游戏"
+			"value" : "D:/fork/opengl-shoot_game"
 		}
 	],
 	"kind" : "cache",

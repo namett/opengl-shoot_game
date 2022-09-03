@@ -50,54 +50,41 @@ void main()
 		fColor = vec4(0.051, 0.051, 0.051, 1.0);
 	}
 	else {
-		// vec3 norm = (vec4(normal, 0.0)).xyz;
+		// TODO: 将所有的物体材质数据传入，然后在这里计算光照，在本项目中很多物体的材质都没有传入，所以这里的光照计算是有问题的
+		// 会产生许多不必要的高光以及高亮
+		vec3 norm = (vec4(normal, 0.0)).xyz;
 
-		// // 计算四个归一化的向量 N,V,L,R(或半角向量H)
-		// vec3 N = normalize(norm);
-		// vec3 V = normalize(eye_position - position);
-		// vec3 L = normalize(light.position - position);
-		// vec3 R = normalize(reflect(-L, N));
+		// 计算四个归一化的向量 N,V,L,R(或半角向量H)
+		vec3 N = normalize(norm);
+		vec3 V = normalize(eye_position - position);
+		vec3 L = normalize(light.position - position);
+		vec3 R = normalize(reflect(-L, N));
 		
 
-		// // 环境光分量I_a
-		// vec4 I_a = light.ambient * material.ambient;
+		// 环境光分量I_a
+		vec4 I_a = light.ambient;// * material.ambient;
 
-		// // 计算系数和漫反射分量I_d
-		// float diffuse_dot = max(dot(L,N), 0);
-		// vec4 I_d = diffuse_dot * light.diffuse * material.diffuse;
+		// 计算系数和漫反射分量I_d
+		float diffuse_dot = max(dot(L,N), 0);
+		vec4 I_d = diffuse_dot * light.diffuse;// * material.diffuse;
 
-		// // 计算系数和镜面反射分量I_s
-		// float specular_dot_pow = pow(max(dot(R,V), 0), material.shininess);
-		// vec4 I_s = specular_dot_pow * light.specular * material.specular;
+		// 计算系数和镜面反射分量I_s
+		float specular_dot_pow = pow(max(dot(R,V), 0), 128); //material.shininess);
+		vec4 I_s = specular_dot_pow * light.specular;// * material.specular;
 
-		// // 计算衰减参数
-		// float d = distance(light.position, position);
-		// float c = 1 / (light.constant + light.linear*d + light.quadratic*d*d);
-		// // c = 1.0; //不考虑衰减
-		// // 结合衰减系数，合并三个分量的颜色，修正透明度
-		// fColor = I_a + c*(I_d + I_s);
-		// fColor.a = 1.0;
-
-		
-		// // if(isTextrue == 1){
-		// //	fColor = texture( texture, texCoord );
-		// //  }
-		// // else if (isColor == 1){
-		// if (isColor ==1) {
-		// 	tmp = vec4(color, 1.0);
-		// }
-		// // fColor = vec4(normal, 1.0);
-		// // fColor = vec4(normalize(position) , 1.0);
-		// // fColor = vec4(1.0/position.z, position.z, position.z , 1.0);
-
+		// 计算衰减参数
+		float d = distance(light.position, position);
+		float c = 1 / (light.constant + light.linear*d + light.quadratic*d*d);
+		c = 1.0; //不考虑衰减
+		// 结合衰减系数，合并三个分量的颜色，修正透明度
+		vec4 tmpColor = I_a + c*(I_d + I_s);
+		tmpColor.a = 1.0;
 
 		fColor = vec4(color, 1.0);
 		// 将光照和贴图合成
 		if (isColor == 1) {
 			fColor = texture2D( texture, texCoord );
-			// fColor.r*=tmp.r;
-			// fColor.g*=tmp.g;
-			// fColor.b*=tmp.b;			
+			fColor *= tmpColor;	
 		}
 
 		

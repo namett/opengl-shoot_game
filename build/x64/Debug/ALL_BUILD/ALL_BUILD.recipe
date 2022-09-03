@@ -4,6 +4,12 @@
     <ProjectOutput>
       <FullPath>D:\fork\opengl-shoot_game\build\x64\Debug\ZERO_CHECK</FullPath>
     </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\fork\opengl-shoot_game\build\Debug\main.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\fork\opengl-shoot_game\build\x64\Debug\ALL_BUILD</FullPath>
+    </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
   <SatelliteDlls />

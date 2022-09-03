@@ -141,7 +141,7 @@ void MeshPainter::bindLightAndMaterial( TriMesh* mesh, openGLObject &object, Lig
 	glUniform1f(glGetUniformLocation(object.program, "light.quadratic"), light->getQuadratic());
 
 }
-
+// 本项目中大部分情况下都只是更改了个贴图而已，就其实挺浪费资源
 void MeshPainter::addMesh( TriMesh* mesh, const std::string &name, const std::string &texture_image, const std::string &vshader, const std::string &fshader){
 	
 	mesh_names.push_back(name);
@@ -150,7 +150,7 @@ void MeshPainter::addMesh( TriMesh* mesh, const std::string &name, const std::st
     openGLObject object;
     // 绑定openGL对象，并传递顶点属性的数据
     bindObjectAndData(mesh, object, texture_image, vshader, fshader);
-
+	// 将openGL对象添加到列表中
     opengl_objects.push_back(object);
 };
 
@@ -179,7 +179,7 @@ void MeshPainter::drawMesh(TriMesh* mesh, openGLObject &object, Light *light, Ca
     glBindTexture(GL_TEXTURE_2D, object.texture);// 该语句必须，否则将只使用同一个纹理进行绘制
 
 	// 将材质和光源数据传递给着色器
-	 bindLightAndMaterial(mesh, object, light, camera);
+	bindLightAndMaterial(mesh, object, light, camera);
 	// 绘制
 	glDrawArrays(GL_TRIANGLES, 0, mesh->getPoints().size());
 
@@ -189,6 +189,7 @@ void MeshPainter::drawMesh(TriMesh* mesh, openGLObject &object, Light *light, Ca
 	glUseProgram(0);
 
 };
+// 略显多余
 void MeshPainter::drawMesh(int i, glm::mat4 modelMatrix, Light *light, Camera* camera, bool shadow){
     
 	openGLObject &object = opengl_objects[i];
@@ -234,7 +235,7 @@ void MeshPainter::drawMesh(int i, glm::mat4 modelMatrix, Light *light, Camera* c
 
 		// 将材质和光源数据传递给着色器
 		bindLightAndMaterial(meshes[i], object, light, camera);
-
+		// 绘制
 		glDrawArrays(GL_TRIANGLES, 0, meshes[i]->getPoints().size());
 	}
 
@@ -249,6 +250,7 @@ void MeshPainter::drawMeshes(Light *light, Camera* camera, int l, int r){
         drawMesh(meshes[i], opengl_objects[i], light, camera);
     }
 };
+// 也挺多余的
 void MeshPainter::drawMeshes(Light *light, Camera* camera){
     for (int i = 0; i < meshes.size(); i++)
     {
@@ -277,11 +279,6 @@ void MeshPainter::cleanMeshes(){
     meshes.clear();
     opengl_objects.clear();
 };
-
-void MeshPainter::controlMesh(unsigned char key, int x, int y, const std::string &selected_mesh_name) {
-	// xxx
-}
-
 
 void MeshPainter::load_texture_STBImage(const std::string& file_name, GLuint& m_texName)
 {

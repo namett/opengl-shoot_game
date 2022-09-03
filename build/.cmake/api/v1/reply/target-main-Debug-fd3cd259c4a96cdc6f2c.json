@@ -2,10 +2,10 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "Release/main.exe"
+			"path" : "Debug/main.exe"
 		},
 		{
-			"path" : "Release/main.pdb"
+			"path" : "Debug/main.pdb"
 		}
 	],
 	"backtrace" : 2,
@@ -66,7 +66,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1"
 				}
 			],
 			"defines" : 
@@ -80,7 +80,7 @@
 			[
 				{
 					"backtrace" : 5,
-					"path" : "C:/Users/ASUS/Desktop/射击小游戏/include"
+					"path" : "D:/fork/opengl-shoot_game/include"
 				},
 				{
 					"backtrace" : 3,
@@ -110,7 +110,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /MD /O2 /Ob2 /DNDEBUG"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1"
 				}
 			],
 			"defines" : 
@@ -124,7 +124,7 @@
 			[
 				{
 					"backtrace" : 5,
-					"path" : "C:/Users/ASUS/Desktop/射击小游戏/include"
+					"path" : "D:/fork/opengl-shoot_game/include"
 				},
 				{
 					"backtrace" : 3,
@@ -151,21 +151,21 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG",
+				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1",
 				"role" : "flags"
 			},
 			{
-				"fragment" : "/machine:x64 /INCREMENTAL:NO /subsystem:console",
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
 				"role" : "flags"
 			},
 			{
 				"backtrace" : 3,
-				"fragment" : "C:\\src\\vcpkg\\installed\\x64-windows\\lib\\glad.lib",
+				"fragment" : "C:\\src\\vcpkg\\installed\\x64-windows\\debug\\lib\\glad.lib",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "C:\\src\\vcpkg\\installed\\x64-windows\\lib\\glfw3dll.lib",
+				"fragment" : "C:\\src\\vcpkg\\installed\\x64-windows\\debug\\lib\\glfw3dll.lib",
 				"role" : "libraries"
 			},
 			{

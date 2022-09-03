@@ -36,12 +36,16 @@ public:
 	std::vector<glm::vec3> getNormals();
 	std::vector<glm::vec2> getTextures();
 	std::vector<vec3i> TriMesh::getTexturesindex();
+	// 计算三角面片法向量
 	void computeTriangleNormals();
+	// 计算顶点法向量
 	void computeVertexNormals();
 
-	// 获取和设置物体的旋转平移变化
+	// 获取物体的平移
 	glm::vec3 getTranslation();
+	// 获取物体的旋转
 	glm::vec3 getRotation();
+	// 获取物体的缩放
 	glm::vec3 getScale();
 	glm::mat4 getModelMatrix( );
 
@@ -65,7 +69,7 @@ public:
 	void updateTransform();
 
 
-	// 设置物体材质
+	// 获得物体材质
 	glm::vec4 getAmbient();
 	glm::vec4 getDiffuse();
 	glm::vec4 getSpecular();
@@ -117,13 +121,14 @@ protected:
 	std::vector<glm::vec2> textures;	// 传入着色器的纹理坐标，注意是vec2
 
 	bool do_normalize_size;        // 是否将物体大小归一化
+	// ???包围盒是什么鬼
 	float diagonal_length;      // 物体包围盒对角线长度，作为物体归一化系数
 	glm::vec3 up_corner;				// 物体包围盒的上对角顶点
 	glm::vec3 down_corner;           // 物体包围盒的下对角顶点
 	glm::vec3 center;                // 物体的包围盒中心
-
+	// 为什么是vec3类型？？？不应该是矩阵吗？？？TODO:
 	glm::vec3 translation;			// 物体的平移参数
-	glm::vec3 rotation;				// 物体的旋转参数
+	glm::vec3 rotation;				// 物体的旋转参数，分别是x,y,z轴的旋转角度
 	glm::vec3 scale;					// 物体的缩放参数
 
 	glm::vec4 ambient;				// 环境光

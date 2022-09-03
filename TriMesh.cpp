@@ -94,9 +94,6 @@ void TriMesh::computeVertexNormals()
 	{
 		vertex_normals[i] = normalize(vertex_normals[i]);
 	}
-	// 球心在原点的球法向量为坐标
-	// for (int i = 0; i < vertex_positions.size(); i++)
-	// 	vertex_normals.push_back(vertex_positions[i] - vec3(0.0, 0.0, 0.0));
 }
 
 void TriMesh::setNormalize(bool do_norm) { do_normalize_size = do_norm; }
@@ -110,7 +107,6 @@ glm::vec3 TriMesh::getScale(){ return scale; }
 glm::mat4 TriMesh::getModelMatrix( ) {
 	
 	glm::mat4 model = glm::mat4(1.0f);
-	glm::vec3 trans = getTranslation();
 	model = glm::translate(model, getTranslation());
 	model = glm::rotate(model, glm::radians(getRotation()[2]), glm::vec3(0.0, 0.0, 1.0));
 	model = glm::rotate(model, glm::radians(getRotation()[1]), glm::vec3(0.0, 1.0, 0.0));
@@ -464,11 +460,9 @@ void TriMesh::readMtl(const std::string& filename)
 // Light
 glm::mat4 Light::getShadowProjectionMatrix()
 {
-	// 这里只实现了Y=0平面上的阴影投影矩阵，其他情况自己补充
+	// 这里只实现了Y=0平面上的阴影投影矩阵，其他情况自己补充 TODO:
 	float lx, ly, lz;
 
-	//glm::mat4 modelMatrix = this->getModelMatrix();
-	//glm::vec4 light_position = modelMatrix * glm::vec4(this->translation, 1.0);
 	glm::vec4 light_position = glm::vec4(this->translation, 1.0);
 
 	lx = light_position[0];

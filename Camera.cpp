@@ -46,7 +46,7 @@ glm::mat4 Camera::ortho(const GLfloat left, const GLfloat right,
 	c[0][3] = -(right + left) / (right - left);
 	c[1][3] = -(top + bottom) / (top - bottom);
 	c[2][3] = -(zFar + zNear) / (zFar - zNear);
-
+	// 转置，为什么捏？
 	c = glm::transpose(c);
 	return c;
 }
@@ -106,8 +106,7 @@ void Camera::updateCamera()
 	float eyez = radius * cos(upAngle * M_PI / 180.0) * cos(rotateAngle * M_PI / 180.0);
 
 	at = glm::vec4(cameraPos, 1.0);
-	// TODO
-	eye = glm::vec4(eyex, eyey, eyez, 1.0) + at;
+	eye = glm::vec4(eyex, eyey, eyez, 1.0) + at; //所以这里w分量变成了2，真他妈的神奇
 }
 
 void Camera::initCamera(){

@@ -43,21 +43,21 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ALL_BUILD-Debug-b372d28552b6b0d6ba6a.json",
+					"jsonFile" : "target-ALL_BUILD-Debug-26f43c8a8230e42424ad.json",
 					"name" : "ALL_BUILD",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ZERO_CHECK-Debug-211da7320059432cde3f.json",
+					"jsonFile" : "target-ZERO_CHECK-Debug-9c0c6c12e3c7b72e9d06.json",
 					"name" : "ZERO_CHECK",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Debug-2f5145f15bb4ca93a9e9.json",
+					"jsonFile" : "target-main-Debug-fd3cd259c4a96cdc6f2c.json",
 					"name" : "main",
 					"projectIndex" : 0
 				}
@@ -105,21 +105,21 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ALL_BUILD-Release-b372d28552b6b0d6ba6a.json",
+					"jsonFile" : "target-ALL_BUILD-Release-26f43c8a8230e42424ad.json",
 					"name" : "ALL_BUILD",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ZERO_CHECK-Release-211da7320059432cde3f.json",
+					"jsonFile" : "target-ZERO_CHECK-Release-9c0c6c12e3c7b72e9d06.json",
 					"name" : "ZERO_CHECK",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Release-f9a0ff6dd916e9f2fc48.json",
+					"jsonFile" : "target-main-Release-ba7bc4fd67d98f13ea7b.json",
 					"name" : "main",
 					"projectIndex" : 0
 				}
@@ -167,21 +167,21 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ALL_BUILD-MinSizeRel-b372d28552b6b0d6ba6a.json",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-26f43c8a8230e42424ad.json",
 					"name" : "ALL_BUILD",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ZERO_CHECK-MinSizeRel-211da7320059432cde3f.json",
+					"jsonFile" : "target-ZERO_CHECK-MinSizeRel-9c0c6c12e3c7b72e9d06.json",
 					"name" : "ZERO_CHECK",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-MinSizeRel-7772c3db544cbcff98af.json",
+					"jsonFile" : "target-main-MinSizeRel-700d9569d68c9c7afdd5.json",
 					"name" : "main",
 					"projectIndex" : 0
 				}
@@ -229,21 +229,21 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-b372d28552b6b0d6ba6a.json",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-26f43c8a8230e42424ad.json",
 					"name" : "ALL_BUILD",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-ZERO_CHECK-RelWithDebInfo-211da7320059432cde3f.json",
+					"jsonFile" : "target-ZERO_CHECK-RelWithDebInfo-9c0c6c12e3c7b72e9d06.json",
 					"name" : "ZERO_CHECK",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-RelWithDebInfo-bfa0c73adf6a73e36849.json",
+					"jsonFile" : "target-main-RelWithDebInfo-5b12f342597a77e49a02.json",
 					"name" : "main",
 					"projectIndex" : 0
 				}
@@ -253,8 +253,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/ASUS/Desktop/射击小游戏/build",
-		"source" : "C:/Users/ASUS/Desktop/射击小游戏"
+		"build" : "D:/fork/opengl-shoot_game/build",
+		"source" : "D:/fork/opengl-shoot_game"
 	},
 	"version" : 
 	{

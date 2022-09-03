@@ -1,6 +1,6 @@
-^C:\USERS\ASUS\DESKTOP\射击小游戏\BUILD\CMAKEFILES\F3C5070CE58F294A6591FD4C6CB52EA8\GENERATE.STAMP.RULE
+^D:\FORK\OPENGL-SHOOT_GAME\BUILD\CMAKEFILES\FFF259D80E79B8AC64274407809462A7\GENERATE.STAMP.RULE
 setlocal
-"D:\Program Files\CMake\bin\cmake.exe" -SC:/Users/ASUS/Desktop/射击小游戏 -BC:/Users/ASUS/Desktop/射击小游戏/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/ASUS/Desktop/射击小游戏/build/main.sln
+"D:\Program Files\CMake\bin\cmake.exe" -SD:/fork/opengl-shoot_game -BD:/fork/opengl-shoot_game/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/fork/opengl-shoot_game/build/main.sln
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
